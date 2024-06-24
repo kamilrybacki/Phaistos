@@ -17,3 +17,21 @@ class BaseSchemaModel(pydantic.BaseModel, abc.ABC):
         'from_attributes': True,
         'populate_by_name': True,
     }
+
+
+class ParsedProperty(typing.TypedDict):
+    name: str
+    data: dict[str, typing.Any]
+
+
+class TranspiledProperty(typing.TypedDict):
+    type: type
+    default: typing.Any
+    validator: typing.Callable
+
+
+class _TranspiledModelDataBase(typing.TypedDict):
+    __validators__: dict[str, typing.Callable]
+
+
+TranspiledModelData = typing.Union[_TranspiledModelDataBase, typing.Dict]

@@ -1,26 +1,8 @@
-import pydoc
-import random
-
 import pytest
 
-import confjurer.transpiler
+from conftest import RANDOM_DATA, _create_mock_schema_data
 
-
-RANDOM_DATA = ''.join(str(random.randint(0, 9)) for _ in range(10))
-
-
-def _create_mock_schema_data(applied_properties: dict) -> dict:
-    data = {}
-    for property_name, property_data in applied_properties.items():
-        if 'default' in property_data:
-            data[property_name] = property_data['default']
-        elif 'type' in property_data:
-            data[property_name] = pydoc.locate(property_data['type'])(RANDOM_DATA)  # type: ignore
-        elif 'properties' in property_data:
-            data[property_name] = _create_mock_schema_data(property_data['properties'])
-        else:
-            raise ValueError(f'Invalid property data: {property_data}')
-    return data
+from confjurer.transpiler import Transpiler
 
 
 @pytest.mark.parametrize(
@@ -42,6 +24,15 @@ def _create_mock_schema_data(applied_properties: dict) -> dict:
                     'description': 'Value of the test',
                     'type': 'float',
                 },
+                'is_active': {
+                    'description': 'Is the test active',
+                    'type': 'bool',
+                },
+                'tags': {
+                    'description': 'Tags for the test',
+                    'type': 'list[str]',
+                    'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
+                },
             }
         }
     ]
@@ -50,10 +41,11 @@ def test_valid_schema_transpilation(
     patch: dict,
     mock_config_file: dict
 ):
-    transpiled_schema = confjurer.transpiler.transpile_schema(
+    transpiled_schema = Transpiler.schema(
         schema=mock_config_file | patch
     )
     mock_schema_test_data = _create_mock_schema_data(
         applied_properties=patch['properties']
     )
+    print(mock_schema_test_data)
     assert transpiled_schema.model_validate(mock_schema_test_data)
