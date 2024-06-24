@@ -1,0 +1,33 @@
+name: Code tests
+on: [push, pull_request]
+concurrency:
+  group: ${{ github.ref }}-it
+  cancel-in-progress: true
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout 🛎️
+        uses: actions/checkout@v4
+      -
+        name: Setup Python 3.12 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      -
+        name: Install dependencies
+        run: |
+          pip \
+            install \
+              -r \
+                tests/requirements.txt \
+              .
+      -
+        name: Run integration tests 🩺
+        run: |
+          python \
+            -m \
+              pytest \
+                -c \
+                  pytest.ini

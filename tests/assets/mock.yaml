@@ -1,0 +1,4 @@
+version: v1
+name: MockConfig
+description: Mock configuration for tests
+properties: {}

@@ -1,0 +1,48 @@
+name: Check code style and typing
+on: [push, pull_request]
+concurrency:
+  group: ${{ github.ref }}-lint
+  cancel-in-progress: true
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - 
+        name: Set up Python 3.12
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.12
+      - 
+        name: Install dependencies
+        run: |
+          pip \
+            install \
+              -r .github/workflows/requirements.txt \
+              .
+      -
+        name: Find Python files
+        id: find
+        run: |
+          echo "::set-output name=files::$(find . -name '*.py' -not -path './.venv/*' -not -path './.github/*' -not -path './build/*')"
+      -
+        name: Lint with flake8
+        run: |
+          flake8 \
+            --config \
+              ${{ github.workspace }}/.flake8 \
+            ${{ steps.find.outputs.files }}
+      -
+        name: Lint with pylint
+        run: |
+          pylint \
+            --rcfile \
+              ${{ github.workspace }}/.pylintrc \
+            ${{ steps.find.outputs.files }}
+      -
+        name: Type check with mypy
+        run: |
+          mypy \
+            --config-file \
+              ${{ github.workspace }}/mypy.ini \
+            ${{ steps.find.outputs.files }}

@@ -1,0 +1,14 @@
+[MESSAGES CONTROL]
+disable=
+  missing-module-docstring,
+  missing-function-docstring,
+  missing-class-docstring,
+  logging-fstring-interpolation
+
+[FORMAT]
+max-line-length=192
+
+[BASIC]
+function-rgx=(([a-z][a-z0-9_]{2,72})|(_[a-z0-9_]*))$
+method-rgx=(([a-z][a-z0-9_]{2,72})|(_[a-z0-9_]*))$
+variable-rgx=(([a-z][a-z0-9_]{2,72})|(_[a-z0-9_]*))$
