@@ -50,7 +50,7 @@ def test_valid_schema_transpilation(
     patch: dict,
     mock_config_file: dict
 ):
-    transpiled_schema = confjurer.utils.transpile.transpile_schema(
+    transpiled_schema = confjurer.transpiler.transpile_schema(
         schema=mock_config_file | patch
     )
     mock_schema_test_data = _create_mock_schema_data(
