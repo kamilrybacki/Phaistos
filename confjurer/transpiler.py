@@ -5,7 +5,7 @@ import types
 
 import pydantic
 
-import confjurer.utils.consts
+import confjurer.consts
 from confjurer.types.schema import BaseSchemaModel
 
 
