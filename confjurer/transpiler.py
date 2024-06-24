@@ -36,11 +36,11 @@ def _transpile_properties(properties: dict[str, typing.Any]) -> dict[str, dict[s
             )
             if 'validator' in field.keys():
                 validator_name = f'{name}_validator'
-                compiled_function = confjurer.utils.consts.VALIDATOR_FUNCTION_TEMPLATE % (
+                compiled_function = confjurer.consts.VALIDATOR_FUNCTION_TEMPLATE % (
                     validator_name,
                     field['validator'].replace(
                         '\n',
-                        f'\n{confjurer.utils.consts.INDENTATION}'
+                        f'\n{confjurer.consts.INDENTATION}'
                     )
                 )
                 temporary_module = types.ModuleType('temporary_module')
