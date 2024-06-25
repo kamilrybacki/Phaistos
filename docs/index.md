@@ -1,6 +1,6 @@
-# Phaistos 🐍📜
+# Phaistos
 
-Transcribing schemas from YAML-infused tablets to magical Pydantic validation models 🧙‍♂️🧙‍♀️
+Transcribing schemas from YAML-infused tablets to magical Pydantic validation models.
 
 ## Main Features
 
