@@ -6,7 +6,7 @@
     height="300"
 />
 
-Transcribe esoteric data schemas inscribed onto YAML-infused tablets to magical Pydantic validation models 🧙‍♂️🧙‍♀️
+Transcribing schemas from YAML-infused tablets to magical Pydantic validation models 🧙‍♂️🧙‍♀️
 
 # Main Features
 
