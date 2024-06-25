@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["confjurer", "confjurer.*"]
+include = ["phaistos", "phaistos.*"]
 namespaces = true
 
 [project]
-name = "confjurer"
+name = "phaistos"
 version = "0.1.0"
 description = "Tooling to automatically generate validated data models from YAML configuration files"
 license = {file = "LICENSE"}

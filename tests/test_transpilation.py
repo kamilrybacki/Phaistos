@@ -2,7 +2,7 @@ import pytest
 
 from conftest import RANDOM_DATA, _create_mock_schema_data
 
-from confjurer.transpiler import Transpiler
+from phaistos.transpiler import Transpiler
 
 
 @pytest.mark.parametrize(

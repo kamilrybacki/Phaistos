@@ -7,7 +7,7 @@ import os
 
 import pydantic
 
-from confjurer.types.schema import BaseSchemaModel
+from phaistos.types.schema import BaseSchemaModel
 
 ROOT_SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
 
@@ -20,7 +20,7 @@ def _discover_schemas(directory: str) -> list[type[BaseSchemaModel]]:
 
         absolute_path = f'{directory}/{schema}'
         if not os.path.isdir(absolute_path):
-            import_path = 'confjurer.schemas.' + absolute_path \
+            import_path = 'phaistos.schemas.' + absolute_path \
                 .split(ROOT_SCHEMAS_DIR)[1] \
                 .removeprefix('/') \
                 .replace('/', '.') \

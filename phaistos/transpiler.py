@@ -9,9 +9,9 @@ import types
 
 import pydantic
 
-import confjurer.consts
-import confjurer.exceptions
-from confjurer.types.schema import BaseSchemaModel, ParsedProperty, TranspiledProperty, TranspiledModelData
+import phaistos.consts
+import phaistos.exceptions
+from phaistos.types.schema import BaseSchemaModel, ParsedProperty, TranspiledProperty, TranspiledModelData
 
 logging.basicConfig(level=logging.INFO)
 
@@ -27,11 +27,11 @@ class Transpiler:
     @classmethod
     def validator(cls, prop: ParsedProperty) -> typing.Callable:
         validator_key = f'{prop["name"]}_validator'
-        rendered_function_source_code = confjurer.consts.VALIDATOR_FUNCTION_TEMPLATE % (
+        rendered_function_source_code = phaistos.consts.VALIDATOR_FUNCTION_TEMPLATE % (
             validator_key,
             prop['data'].get('validator', '').replace(
                 '\n',
-                f'\n{confjurer.consts.DEFAULT_INDENTATION}'
+                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
             )
         )
         print(rendered_function_source_code)
@@ -63,11 +63,11 @@ class Transpiler:
     @classmethod
     def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> None:
         if match := re.match(
-            confjurer.consts.COLLECTION_TYPE_REGEX,
+            phaistos.consts.COLLECTION_TYPE_REGEX,
             prop['data']['type']
         ):
             cls._check_if_collection_type_is_allowed(match['collection'])
-            prop['data']['validator'] = prop['data'].get('validator', '') + confjurer.consts.COLLECTION_VALIDATOR_TEMPLATE % (
+            prop['data']['validator'] = prop['data'].get('validator', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
                 match['item'],
                 prop['name'],
                 match['item']
@@ -76,8 +76,8 @@ class Transpiler:
 
     @staticmethod
     def _check_if_collection_type_is_allowed(collection_type: str) -> None:
-        if collection_type not in confjurer.consts.ALLOWED_COLLECTION_TYPES:
-            raise confjurer.exceptions.IncorrectFieldTypeError(collection_type)
+        if collection_type not in phaistos.consts.ALLOWED_COLLECTION_TYPES:
+            raise phaistos.exceptions.IncorrectFieldTypeError(collection_type)
 
     @classmethod
     def _transpile_nested_property(cls, prop: ParsedProperty) -> TranspiledProperty:
