@@ -1,3 +1,3 @@
-# ConfJurer
+# Phaistos
 
-Define configuration schemas using YAML and CONJURE them into Pydantic models!
+Transcribe human-readble, advanced YAML schemas into Pydantic models for data validation pipelines.
