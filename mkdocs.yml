@@ -1,0 +1,13 @@
+site_name: Phaistos
+theme:
+  name: readthedocs
+  highlightjs: true
+  hljs_languages:
+    - yaml
+    - python
+  logo: assets/images/phaistos.png
+  favicon: assets/images/favicon.ico
+plugins:
+  - mkdocstrings
+nav:
+  - Home: index.md
