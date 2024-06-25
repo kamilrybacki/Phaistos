@@ -22,7 +22,7 @@ def _catch_invalid_data(
     'patch',
     consts.MOCK_SCHEMA_PATCHES
 )
-def test_schema_transpilation(
+def test_patched_schema_transpilation(
     patch: dict,
     mock_config_file: dict,
     logger
