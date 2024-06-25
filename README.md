@@ -8,7 +8,7 @@
 
 Transcribing schemas from YAML-infused tablets to magical Pydantic validation models 🧙‍♂️🧙‍♀️
 
-# Main Features
+## Main Features
 
 The main goal of this project is to provide flexibility and utility in defining data models using YAML manifests,
 to enforce data validation of objects such as ETL pipeline payloads, API requests and responses, configurations and more.
@@ -22,7 +22,7 @@ The main features of Phaistos are:
 * Add custom validators to data fields that are automatically injected into Pydantic models 💉
 * Store transcribed models as pickled entities for easy import and use in your Python projects 📦
 
-## Why Phaistos? (as in - why the name?)
+### Why Phaistos? (as in - why the name?)
 
 The name Phaistos comes from the [Phaistos Disc](https://en.wikipedia.org/wiki/Phaistos_Disc), a disk of fired clay from the Minoan palace of Phaistos on the island of Crete, possibly dating to the middle or late Minoan Bronze Age (2nd millennium BC). These discs contain a series of symbols that are still undeciphered to this day.
 
