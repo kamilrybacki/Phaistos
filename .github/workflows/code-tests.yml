@@ -21,7 +21,7 @@ jobs:
           pip \
             install \
               -r \
-                tests/requirements.txt \
+                .github/workflows/requirements.txt \
               .
       -
         name: Run integration tests 🩺
