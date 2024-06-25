@@ -1,7 +1,7 @@
 # Phaistos
 
 <img
-    src=".github/phaistos.png"
+    src=".github/assets/phaistos.png"
     alt="Phaistos logo"
     height="300"
 />
