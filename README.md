@@ -1,4 +1,4 @@
-# Phaistos 🐍📜
+# Phaistos
 
 <img
     src=".github/assets/phaistos.png"
