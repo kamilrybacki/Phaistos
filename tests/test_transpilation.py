@@ -1,51 +1,63 @@
+import typing
+
 import pytest
 
-from conftest import RANDOM_DATA, _create_mock_schema_data
+import conftest
+import consts
 
 from phaistos.transpiler import Transpiler
 
 
+def _catch_invalid_data(
+    data: typing.Any,
+    validator: typing.Callable,
+    logger
+) -> None:
+    with pytest.raises(ValueError):
+        validator(data)
+    logger.info(f'Invalid data "{data}" caught successfully')
+
+
 @pytest.mark.parametrize(
     'patch',
-    [
-        {
-            'version': '0.1.0',
-            'properties': {
-                'name': {
-                    'description': 'Name of the test',
-                    'type': 'str',
-                    'default': f'default-{RANDOM_DATA}'
-                },
-                'age': {
-                    'description': 'Age of the test',
-                    'type': 'int',
-                },
-                'value': {
-                    'description': 'Value of the test',
-                    'type': 'float',
-                },
-                'is_active': {
-                    'description': 'Is the test active',
-                    'type': 'bool',
-                },
-                'tags': {
-                    'description': 'Tags for the test',
-                    'type': 'list[str]',
-                    'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
-                },
-            }
-        }
-    ]
+    consts.MOCK_SCHEMA_PATCHES
 )
-def test_valid_schema_transpilation(
+def test_schema_transpilation(
     patch: dict,
-    mock_config_file: dict
+    mock_config_file: dict,
+    logger
 ):
+    logger.info('Testing schema transpilation for patch: %s', {
+        property: patch[property]['type']
+        for property in patch
+    })
     transpiled_schema = Transpiler.schema(
-        schema=mock_config_file | patch
+        schema=mock_config_file | {
+            'properties': patch
+        }
     )
-    mock_schema_test_data = _create_mock_schema_data(
-        applied_properties=patch['properties']
+    mock_schema_test_data = conftest.create_mock_schema_data(
+        applied_properties=patch
     )
-    print(mock_schema_test_data)
-    assert transpiled_schema.model_validate(mock_schema_test_data)
+    logger.info('Validating clean data: %s', mock_schema_test_data)
+    assert transpiled_schema(**mock_schema_test_data)
+
+    validators_to_check = conftest.find_custom_validators(patch)
+
+    logger.info('Checking if validators are present: %s', [
+        validator_to_check[1]
+        for validator_to_check in validators_to_check
+    ])
+    assert all(
+        hasattr(transpiled_schema, validator[1])
+        for validator in validators_to_check
+    )
+
+    for validator in validators_to_check:
+        validator_method = getattr(transpiled_schema, validator[1])
+        for sample in validator[2]:
+            _catch_invalid_data(
+                data=sample,
+                validator=validator_method,
+                logger=logger
+            )

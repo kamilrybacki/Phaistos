@@ -1,22 +1,8 @@
+from __future__ import annotations
 import abc
 import typing
 
 import pydantic
-
-
-# pylint: disable=too-few-public-methods
-class BaseSchemaModel(pydantic.BaseModel, abc.ABC):
-    __tag__: typing.ClassVar[str]
-
-    @property  # type: ignore
-    @abc.abstractmethod
-    def __tag__(self) -> str:
-        pass
-
-    model_config = {
-        'from_attributes': True,
-        'populate_by_name': True,
-    }
 
 
 class ParsedProperty(typing.TypedDict):
@@ -24,14 +10,44 @@ class ParsedProperty(typing.TypedDict):
     data: dict[str, typing.Any]
 
 
+class TranspiledPropertyValidator(typing.TypedDict):
+    field: str
+    name: str
+    method: typing.Callable
+
+
 class TranspiledProperty(typing.TypedDict):
     type: type
     default: typing.Any
-    validator: typing.Callable
+    validator: TranspiledPropertyValidator
 
 
-class _TranspiledModelDataBase(typing.TypedDict):
-    __validators__: dict[str, typing.Callable]
+class TranspiledModelData(typing.TypedDict):
+    validators: list[TranspiledPropertyValidator]
+    properties: dict[str, typing.Any]
 
 
-TranspiledModelData = typing.Union[_TranspiledModelDataBase, typing.Dict]
+class TranspiledSchema(pydantic.BaseModel, abc.ABC):
+    __tag__: typing.ClassVar[str]
+    model_config = {
+        'from_attributes': True,
+        'populate_by_name': True,
+    }
+
+    @classmethod
+    def compile(cls, name: str, model_data: TranspiledModelData) -> TranspiledSchema:
+        cls.__tag__ = name.upper()
+        schema: TranspiledSchema = pydantic.create_model(  # type: ignore
+            name,
+            __base__=TranspiledSchema,
+            **model_data['properties']
+        )
+        for validator in model_data['validators']:
+            setattr(
+                schema,
+                validator['name'],
+                validator['method']
+            )
+            schema.__pydantic_decorators__.field_validators[validator['field']] = validator['method']
+        schema.model_rebuild()
+        return schema

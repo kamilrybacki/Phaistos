@@ -7,13 +7,13 @@ import os
 
 import pydantic
 
-from phaistos.types.schema import BaseSchemaModel
+from phaistos.types.schema import TranspiledSchema
 
 ROOT_SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
 
 
-def _discover_schemas(directory: str) -> list[type[BaseSchemaModel]]:
-    schemas: list[type[BaseSchemaModel]] = []
+def _discover_schemas(directory: str) -> list[type[TranspiledSchema]]:
+    schemas: list[type[TranspiledSchema]] = []
     for schema in os.listdir(directory):
         if schema.startswith('_'):
             continue
@@ -38,7 +38,7 @@ def _discover_schemas(directory: str) -> list[type[BaseSchemaModel]]:
                 )
                 continue
 
-            if not issubclass(schema_class, BaseSchemaModel):
+            if not issubclass(schema_class, TranspiledSchema):
                 logging.info(
                     f'Schema {schema} is not a valid schema'
                 )
@@ -80,12 +80,12 @@ class _SchemaLoader:  # pylint: disable=too-few-public-methods
     cache: dict[str, ValidationSchema] = {}
 
     @classmethod
-    def load(cls, name: str) -> type[BaseSchemaModel]:
+    def load(cls, name: str) -> type[TranspiledSchema]:
         schema = getattr(
             AvailableSchemas,
             name
         )
-        if not issubclass(schema, BaseSchemaModel):
+        if not issubclass(schema, TranspiledSchema):
             raise SchemaParsingException(
                 f'Schema {name} is not a valid schema'
             )
@@ -97,7 +97,7 @@ class _SchemaLoader:  # pylint: disable=too-few-public-methods
 class ValidationSchema:
     name: str
 
-    _model: type[BaseSchemaModel]
+    _model: type[TranspiledSchema]
 
     @classmethod
     def construct(cls, name: str) -> ValidationSchema:
