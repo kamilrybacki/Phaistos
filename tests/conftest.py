@@ -9,6 +9,7 @@ import yaml
 import consts
 import phaistos.consts
 
+
 def create_mock_schema_data(applied_properties: dict) -> dict:
     data = {}
     for property_name, property_data in applied_properties.items():
@@ -22,6 +23,7 @@ def create_mock_schema_data(applied_properties: dict) -> dict:
             raise ValueError(f'Invalid property data: {property_data}')
     return data
 
+
 def find_custom_validators(data: dict) -> list[tuple[str, str]]:
     return [
         (
@@ -33,6 +35,7 @@ def find_custom_validators(data: dict) -> list[tuple[str, str]]:
         if 'validator' in property_data
     ]
 
+
 @pytest.fixture(scope='session')
 def mock_config_file() -> dict[str, typing.Any]:
     with open(
@@ -41,6 +44,7 @@ def mock_config_file() -> dict[str, typing.Any]:
         encoding='utf-8'
     ) as schema_file:
         return yaml.safe_load(schema_file)
+
 
 @pytest.fixture(scope='session')
 def logger() -> logging.Logger:

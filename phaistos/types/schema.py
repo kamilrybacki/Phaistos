@@ -13,7 +13,7 @@ class ParsedProperty(typing.TypedDict):
 class TranspiledPropertyValidator(typing.TypedDict):
     field: str
     name: str
-    method: typing.Callable
+    method: typing.Any
 
 
 class TranspiledProperty(typing.TypedDict):
@@ -35,9 +35,9 @@ class TranspiledSchema(pydantic.BaseModel, abc.ABC):
     }
 
     @classmethod
-    def compile(cls, name: str, model_data: TranspiledModelData) -> TranspiledSchema:
+    def compile(cls, name: str, model_data: TranspiledModelData) -> type[TranspiledSchema]:
         cls.__tag__ = name.upper()
-        schema: TranspiledSchema = pydantic.create_model(  # type: ignore
+        schema: type[TranspiledSchema] = pydantic.create_model(  # type: ignore
             name,
             __base__=TranspiledSchema,
             **model_data['properties']
@@ -51,3 +51,6 @@ class TranspiledSchema(pydantic.BaseModel, abc.ABC):
             schema.__pydantic_decorators__.field_validators[validator['field']] = validator['method']
         schema.model_rebuild()
         return schema
+
+    def __call__(self, data: typing.Any) -> TranspiledSchema:
+        return self.model_validate(data)
