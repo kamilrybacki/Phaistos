@@ -24,6 +24,6 @@ The main features of Phaistos are:
 
 ### Why Phaistos? (as in - why the name?)
 
-The name Phaistos comes from the [Phaistos Disc](https://en.wikipedia.org/wiki/Phaistos_Disc), a disk of fired clay from the Minoan palace of Phaistos on the island of Crete, possibly dating to the middle or late Minoan Bronze Age (2nd millennium BC). These discs contain a series of symbols that are still undeciphered to this day.
+The Phaistos name comes from the [Phaistos Disc](https://en.wikipedia.org/wiki/Phaistos_Disc), a disk of fired clay from the Minoan palace of Phaistos on the island of Crete, possibly dating to the middle or late Minoan Bronze Age (2nd millennium BC). These discs contain a series of symbols that are still undeciphered to this day.
 
 In the show of unprecedented far-reaching, the resulting data models from Phaistos can be viewed as such "discs" containing malleable and abstract data validation dialects that can exist in a variety of forms and can be used to validate a variety of data payloads. Also - we used to burn data into disks 💽, so there's another angle to the name. 🤷‍♂️
