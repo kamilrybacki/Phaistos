@@ -85,6 +85,6 @@ def test_patched_schema_transpilation(
         for sample in validator[1]:
             _catch_invalid_data(
                 data=sample,
-                validator=validator[0],
+                validator=validator[0],  # type: ignore
                 logger=logger
             )
