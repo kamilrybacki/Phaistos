@@ -92,13 +92,22 @@ class Transpiler:
         class NestedPropertySchema(TranspiledSchema):
             __tag__ = prop['name'].upper()
 
-        NestedPropertySchema.__key__ = f'{prop["name"].capitalize()}Schema'
-        nested_model_transpilation = cls.properties(
-            prop['data'].get('properties', {})
-        )
-        return NestedPropertySchema.compile(
+        NestedPropertySchema.__name__ = f'{prop["name"].capitalize()}Schema'
+        nested_model_transpilation = cls.properties([
+            ParsedProperty(
+                name=property_name,
+                data=property_data
+            )
+            for property_name, property_data in prop['data']['properties'].items()
+        ])
+        compiled_nested_schema = NestedPropertySchema.compile(
             prop['name'],
             nested_model_transpilation
+        )
+        return TranspiledProperty(
+            type=compiled_nested_schema,
+            default=...,
+            validator=cls.validator(prop)
         )
 
     @classmethod
@@ -110,17 +119,23 @@ class Transpiler:
         properties_annotations: typing.Dict[str, typing.Any] = {
             property_name: (property_data['type'], property_data['default'])
             for property_name, property_data in transpiled_model_data.items()
+            if not isinstance(property_data, type)
+        } | {
+            property_name: property_data
+            for property_name, property_data in transpiled_model_data.items()
+            if isinstance(property_data, type)
         }
         return TranspiledModelData(
             validators=[
                 property_data['validator']
                 for property_data in transpiled_model_data.values()
+                if not isinstance(property_data, type)
             ],
             properties=properties_annotations
         )
 
     @classmethod
-    def schema(cls, schema: dict[str, typing.Any]) -> TranspiledSchema:
+    def schema(cls, schema: dict[str, typing.Any]) -> type[TranspiledSchema]:
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
         class RootSchema(TranspiledSchema):

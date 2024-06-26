@@ -24,17 +24,18 @@ def create_mock_schema_data(applied_properties: dict) -> dict:
     return data
 
 
-def find_custom_validators(data: dict) -> list[tuple[str, str]]:
-    return [
-        (
+def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
+    found_validators = []
+    for property_name, property_data in data.items():
+        found_validators += [(
             property_data['type'],
             phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % property_name,
             property_data['invalid']
+        )] if 'validator' in property_data else []
+        found_validators.extend(
+            find_custom_validators(property_data.get('properties', {}))
         )
-        for property_name, property_data in data.items()
-        if 'validator' in property_data
-    ]
-
+    return found_validators
 
 @pytest.fixture(scope='session')
 def mock_config_file() -> dict[str, typing.Any]:

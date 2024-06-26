@@ -57,5 +57,26 @@ MOCK_SCHEMA_PATCHES = [
                 None
             ]
         },
+    },
+    {
+        'nested': {
+            'description': 'Nested property',
+            'properties': {
+                'name': {
+                    'description': 'Name of the nested test',
+                    'type': 'str',
+                },
+                'age': {
+                    'description': 'Age of the nested test',
+                    'type': 'int',
+                    'validator': "if value < 18: raise ValueError('Age must be more than 18')",
+                    'invalid': [
+                        17,
+                        0,
+                        None
+                    ]
+                },
+            }
+        }
     }
 ]
