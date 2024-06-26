@@ -47,7 +47,7 @@ MOCK_SCHEMA_PATCHES = [
                 None
             ]
         },
-        'name': {
+        'label': {
             'description': 'Name of the test',
             'type': 'str',
             'validator': "if not value[0].isupper(): raise ValueError('Name must start with an uppercase letter')",
@@ -62,11 +62,11 @@ MOCK_SCHEMA_PATCHES = [
         'nested': {
             'description': 'Nested property',
             'properties': {
-                'name': {
+                'nested_name': {
                     'description': 'Name of the nested test',
                     'type': 'str',
                 },
-                'age': {
+                'age_name': {
                     'description': 'Age of the nested test',
                     'type': 'int',
                     'validator': "if value < 18: raise ValueError('Age must be more than 18')",

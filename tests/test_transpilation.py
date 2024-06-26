@@ -1,3 +1,4 @@
+from collections import ChainMap
 import typing
 
 import pytest
@@ -44,9 +45,10 @@ def _check_for_validators(
     return validators_found
 
 
+@pytest.mark.order(1)
 @pytest.mark.parametrize(
     'patch',
-    consts.MOCK_SCHEMA_PATCHES
+    consts.MOCK_SCHEMA_PATCHES,
 )
 def test_patched_schema_transpilation(
     patch: dict,
@@ -88,3 +90,18 @@ def test_patched_schema_transpilation(
                 validator=validator[0],  # type: ignore
                 logger=logger
             )
+
+
+@pytest.mark.order(2)
+def test_merged_schema(
+    mock_config_file,
+    logger
+):
+    logger.info('Testing schema transpilation for schema merged from ALL previous patches')
+    test_patched_schema_transpilation(
+        patch=dict(
+            ChainMap(*consts.MOCK_SCHEMA_PATCHES)
+        ),
+        mock_config_file=mock_config_file,
+        logger=logger
+    )
