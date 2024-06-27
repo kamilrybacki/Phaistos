@@ -8,6 +8,7 @@ import consts
 
 from phaistos.transpiler import Transpiler
 from phaistos.types.schema import TranspiledSchema
+from phaistos.consts import BLOCKED_MODULES
 
 
 def _catch_invalid_data(
@@ -105,3 +106,33 @@ def test_merged_schema(
         mock_config_file=mock_config_file,
         logger=logger
     )
+
+
+@pytest.mark.order(3)
+@pytest.mark.parametrize(
+    'blocked_module',
+    BLOCKED_MODULES
+)
+def test_module_shadowing(
+    blocked_module,
+    mock_config_file,
+    logger
+):
+    try:
+        Transpiler.supress_logging()
+        forbidden_schema = Transpiler.schema(
+            schema=mock_config_file | {
+                'properties': {
+                    'name': {
+                        'description': 'Name of the test',
+                        'type': 'str',
+                        'validator': f'{blocked_module}.__name__'
+                    }
+                }
+            }
+        )
+        forbidden_schema(name='test')
+    except ImportError as module_blocked:
+        logger.info(f'Caught ImportError: {module_blocked} as expected')
+        return
+    pytest.fail(f'Didn\'t block module: {blocked_module}')

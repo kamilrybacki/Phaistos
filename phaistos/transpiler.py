@@ -41,7 +41,13 @@ class Transpiler:
             )
         )
         temporary_module = types.ModuleType('temporary_module')
-        exec(rendered_function_source_code, temporary_module.__dict__)  # pylint: disable=exec-used
+        temporary_module.__dict__.update(
+            phaistos.consts.ISOLATION_FROM_UNWANTED_LIBRARIES
+        )
+        exec(  # pylint: disable=exec-used
+            rendered_function_source_code,
+            temporary_module.__dict__
+        )
         validator_function = getattr(temporary_module, validator_key)
         return TranspiledPropertyValidator(
             field=prop['name'],

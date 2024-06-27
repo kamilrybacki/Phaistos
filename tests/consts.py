@@ -1,6 +1,8 @@
 import os
 import random
 
+from phaistos.consts import DISCOVERY_EXCEPTIONS
+
 TESTS_ASSETS_PATH = os.path.join(
     os.path.dirname(__file__),
     'assets'
@@ -79,4 +81,33 @@ MOCK_SCHEMA_PATCHES = [
             }
         }
     }
+]
+
+SCHEMA_DISCOVERY_FAIL_CASES = [
+    (
+        """
+        os.environ['PHAISTOS__SCHEMA_PATH'] = '/invalid/path'
+        """,
+        FileNotFoundError,
+    ),
+    (
+        """
+        os.remove('/tmp/phaistos_test_file')
+        open('/tmp/phaistos_test_file', 'w').close()
+        os.environ['PHAISTOS__SCHEMA_PATH'] = '/tmp/phaistos_test_file'
+        """,
+        NotADirectoryError,
+    ),
+    (
+        """
+        os.environ['PHAISTOS__SCHEMA_PATH'] = '/etc/passwd'
+        """,
+        PermissionError,
+    ),
+    (
+        """
+
+        """,
+        KeyError,
+    )
 ]

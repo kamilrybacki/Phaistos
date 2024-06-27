@@ -1,4 +1,6 @@
 import logging
+import os
+import types
 
 DEFAULT_INDENTATION = 2 * ' '
 
@@ -23,6 +25,7 @@ if not all(
 {DEFAULT_INDENTATION}raise ValueError(f"Items in %s must be of type %s")
 """
 
+
 def __setup_logger(logger_name: str) -> logging.Logger:
     new_logger = logging.getLogger(logger_name)
     new_logger.propagate = False
@@ -36,4 +39,34 @@ def __setup_logger(logger_name: str) -> logging.Logger:
     new_logger.setLevel(logging.DEBUG)
     return new_logger
 
+
 TRANSPILATION_LOGGER = __setup_logger('PHAISTOS (T)')
+
+DISCOVERY_EXCEPTIONS = {
+    FileNotFoundError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH points to a non-existent directory',
+    NotADirectoryError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH points to a file',
+    PermissionError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH is not accessible',
+    KeyError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH not set'
+}
+
+# This is a list of modules that should not be available to the user
+# when they are writing validators, so they are shadowed by fake modules
+# with the same name and then inserted into the globals of the validator
+# function during compilation
+
+BLOCKED_MODULES = ['os', 'sys', 'importlib', 'pydoc', 'subprocess', 'pickle', 'shutil', 'tempfile', 'inspect', 'shlex']
+
+with open('/tmp/null_module.py', 'w', encoding='utf-8') as null_module:
+    null_module.writelines([
+        'def __getattr__(*args): raise ImportError("Blocked module")',
+    ])
+
+NULL_MODULE = types.ModuleType('BLOCKED')
+NULL_MODULE.__file__ = '/tmp/__init__.py'
+
+ISOLATION_FROM_UNWANTED_LIBRARIES = {
+    module_name: NULL_MODULE
+    for module_name in BLOCKED_MODULES
+} if bool(
+    os.environ.get('PHAISTOS__ENABLE_UNSAFE_VALIDATORS', 'False')
+) else {}
