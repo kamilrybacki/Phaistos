@@ -110,9 +110,27 @@ SCHEMA_DISCOVERY_FAIL_CASES = [
     )
 ]
 
+# Inspired by: https://supakeen.com/weblog/dangers-in-pythons-standard-library.html
+
 VULNERABILITIES_TO_TEST = [
     {
         'name': 'FS peek',
         'code': 'print(os.listdir("/"))'
+    },
+    {
+        'name': 'Messing up envvars',
+        'code': 'os.environ["PATH"]="/dev/null"'
+    },
+    {
+        'name': 'RCE via Pickle',
+        'code': 'pickle.loads(b"\\x80\\x03cbuiltins\\nprint\\nq\\x00X\\x05\\x00\\x00\\x00helloq\\x01\\x85q\\x02Rq\\x03.")'
+    },
+    {
+        'name': 'Shlex with subprocess',
+        'code': 'subprocess.check_output("echo {}".format(shlex.split("foo;echo${IFS}hello")[0]))'
+    },
+    {
+        'name': "Removal via shutil",
+        'code': 'shutil.rmtree("/tmp", ignore_errors=False)'
     }
 ]
