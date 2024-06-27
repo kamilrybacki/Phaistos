@@ -37,6 +37,7 @@ def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
         )
     return found_validators
 
+
 @pytest.fixture(scope='session')
 def mock_config_file() -> dict[str, typing.Any]:
     with open(

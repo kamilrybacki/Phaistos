@@ -8,7 +8,7 @@ import consts
 
 from phaistos.transpiler import Transpiler
 from phaistos.types.schema import TranspiledSchema
-from phaistos.consts import BLOCKED_MODULES
+from phaistos.consts import BLOCKED_MODULES, ISOLATION_FROM_UNWANTED_LIBRARIES
 
 
 def _catch_invalid_data(
@@ -118,6 +118,7 @@ def test_module_shadowing(
     mock_config_file,
     logger
 ):
+    logger.info(ISOLATION_FROM_UNWANTED_LIBRARIES)
     try:
         Transpiler.supress_logging()
         forbidden_schema = Transpiler.schema(
@@ -126,7 +127,7 @@ def test_module_shadowing(
                     'name': {
                         'description': 'Name of the test',
                         'type': 'str',
-                        'validator': f'{blocked_module}.__name__'
+                        'validator': 'print(os)'
                     }
                 }
             }

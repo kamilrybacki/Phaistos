@@ -1,8 +1,6 @@
 import os
 import random
 
-from phaistos.consts import DISCOVERY_EXCEPTIONS
-
 TESTS_ASSETS_PATH = os.path.join(
     os.path.dirname(__file__),
     'assets'

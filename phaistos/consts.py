@@ -58,7 +58,10 @@ BLOCKED_MODULES = ['os', 'sys', 'importlib', 'pydoc', 'subprocess', 'pickle', 's
 
 with open('/tmp/null_module.py', 'w', encoding='utf-8') as null_module:
     null_module.writelines([
-        'def __getattr__(*args): raise ImportError("Blocked module")',
+        'def __getattr__(*args):\n',
+        '\traise ImportError("Blocked module")\n',
+        'def __setattr__(*args):\n',
+        '\traise ImportError("Blocked module")\n',
     ])
 
 NULL_MODULE = types.ModuleType('BLOCKED')
