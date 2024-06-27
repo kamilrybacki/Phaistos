@@ -50,9 +50,9 @@ MOCK_SCHEMA_PATCHES = [
         'label': {
             'description': 'Name of the test',
             'type': 'str',
-            'validator': "if not value[0].isupper(): raise ValueError('Name must start with an uppercase letter')",
+            'validator': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
             'invalid': [
-                'name',
+                'na$!',
                 '',
                 None
             ]
@@ -108,4 +108,11 @@ SCHEMA_DISCOVERY_FAIL_CASES = [
         """,
         KeyError,
     )
+]
+
+VULNERABILITIES_TO_TEST = [
+    {
+        'name': 'FS peek',
+        'code': 'print(os.listdir("/"))'
+    }
 ]

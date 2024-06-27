@@ -8,7 +8,8 @@ import consts
 
 from phaistos.transpiler import Transpiler
 from phaistos.types.schema import TranspiledSchema
-from phaistos.consts import BLOCKED_MODULES, ISOLATION_FROM_UNWANTED_LIBRARIES
+from phaistos.consts import BLOCKED_MODULES
+from phaistos.exceptions import ForbiddenModuleUseInValidator
 
 
 def _catch_invalid_data(
@@ -51,11 +52,7 @@ def _check_for_validators(
     'patch',
     consts.MOCK_SCHEMA_PATCHES,
 )
-def test_patched_schema_transpilation(
-    patch: dict,
-    mock_config_file: dict,
-    logger
-):
+def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
     logger.info('Testing schema transpilation for patch: %s', {
         property: patch[property]['type'] if 'type' in patch[property] else 'nested'
         for property in patch
@@ -94,10 +91,7 @@ def test_patched_schema_transpilation(
 
 
 @pytest.mark.order(2)
-def test_merged_schema(
-    mock_config_file,
-    logger
-):
+def test_merged_schema(mock_config_file, logger):
     logger.info('Testing schema transpilation for schema merged from ALL previous patches')
     test_patched_schema_transpilation(
         patch=dict(
@@ -113,27 +107,48 @@ def test_merged_schema(
     'blocked_module',
     BLOCKED_MODULES
 )
-def test_module_shadowing(
-    blocked_module,
-    mock_config_file,
-    logger
-):
-    logger.info(ISOLATION_FROM_UNWANTED_LIBRARIES)
+def test_module_shadowing(blocked_module, mock_config_file, logger):
     try:
+        logger.info(f'Testing module shadowing for module: {blocked_module}')
         Transpiler.supress_logging()
         forbidden_schema = Transpiler.schema(
             schema=mock_config_file | {
                 'properties': {
-                    'name': {
-                        'description': 'Name of the test',
+                    'text': {
+                        'description': 'Text to be displayed',
                         'type': 'str',
-                        'validator': 'print(os)'
+                        'validator': f'if {blocked_module}.LOCK: {blocked_module}.some_attribute'
                     }
                 }
             }
         )
-        forbidden_schema(name='test')
-    except ImportError as module_blocked:
-        logger.info(f'Caught ImportError: {module_blocked} as expected')
+        forbidden_schema(text=f'Hello, {blocked_module}!')
+    except ForbiddenModuleUseInValidator:
+        Transpiler.enable_logging()
         return
     pytest.fail(f'Didn\'t block module: {blocked_module}')
+
+
+@pytest.mark.order(4)
+@pytest.mark.parametrize(
+    'exploit',
+    consts.VULNERABILITIES_TO_TEST
+)
+def test_possible_expoits(exploit: dict[str, str], mock_config_file, logger):
+    try:
+        schema = Transpiler.schema(
+            schema=mock_config_file | {
+                'properties': {
+                    'whatever': {
+                        'description': 'We care only about the validator',
+                        'type': 'int',
+                        'validator': exploit['code']
+                    }
+                }
+            }
+        )
+        schema(whatever=42)  # type: ignore
+    except ForbiddenModuleUseInValidator:
+        logger.info(f'Exploit "{exploit["name"]}" prevented')
+        return
+    pytest.fail(f'Exploit "{exploit["name"]}" wasn\'t prevented!')

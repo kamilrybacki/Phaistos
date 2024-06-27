@@ -54,7 +54,7 @@ class Transpiler:
             name=validator_key,
             method=pydantic.field_validator(
                 prop['name'],
-                mode='wrap',
+                mode='after',
                 check_fields=True,
             )(validator_function)
         )

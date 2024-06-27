@@ -2,6 +2,8 @@ import logging
 import os
 import types
 
+import phaistos.exceptions
+
 DEFAULT_INDENTATION = 2 * ' '
 
 VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
@@ -54,18 +56,16 @@ DISCOVERY_EXCEPTIONS = {
 # with the same name and then inserted into the globals of the validator
 # function during compilation
 
+
+def _block(*args, **kwargs):
+    raise phaistos.exceptions.ForbiddenModuleUseInValidator()
+
+
 BLOCKED_MODULES = ['os', 'sys', 'importlib', 'pydoc', 'subprocess', 'pickle', 'shutil', 'tempfile', 'inspect', 'shlex']
 
-with open('/tmp/null_module.py', 'w', encoding='utf-8') as null_module:
-    null_module.writelines([
-        'def __getattr__(*args):\n',
-        '\traise ImportError("Blocked module")\n',
-        'def __setattr__(*args):\n',
-        '\traise ImportError("Blocked module")\n',
-    ])
-
 NULL_MODULE = types.ModuleType('BLOCKED')
-NULL_MODULE.__file__ = '/tmp/__init__.py'
+setattr(NULL_MODULE, 'LOCK', True)
+setattr(NULL_MODULE, '__getattr__', _block)
 
 ISOLATION_FROM_UNWANTED_LIBRARIES = {
     module_name: NULL_MODULE

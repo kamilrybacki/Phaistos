@@ -1,4 +1,9 @@
 
+class ForbiddenModuleUseInValidator(ImportError):
+    def __init__(self, *args: object, name: str | None = None, path: str | None = None) -> None:
+        super().__init__(*args, name=name, path=path)
+
+
 class IncorrectFieldTypeError(ValueError):
     def __init__(self, field_type: str):
         if field_type in {'dict', 'object'}:

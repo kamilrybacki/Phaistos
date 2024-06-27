@@ -1,5 +1,4 @@
 from __future__ import annotations
-import abc
 import typing
 
 import pydantic
@@ -27,7 +26,7 @@ class TranspiledModelData(typing.TypedDict):
     properties: dict[str, typing.Any]
 
 
-class TranspiledSchema(pydantic.BaseModel, abc.ABC):
+class TranspiledSchema(pydantic.BaseModel):
     __tag__: typing.ClassVar[str]
     model_config = {
         'from_attributes': True,
@@ -40,16 +39,12 @@ class TranspiledSchema(pydantic.BaseModel, abc.ABC):
         schema: type[TranspiledSchema] = pydantic.create_model(  # type: ignore
             name,
             __base__=TranspiledSchema,
+            __validators__={
+                validator['name']: validator['method']
+                for validator in model_data['validators']
+            },
             **model_data['properties']
         )
-        for validator in model_data['validators']:
-            setattr(
-                schema,
-                validator['name'],
-                validator['method']
-            )
-            schema.__pydantic_decorators__.field_validators[validator['field']] = validator['method']
-        schema.model_rebuild()
         return schema
 
     def __call__(self, data: typing.Any) -> TranspiledSchema:
