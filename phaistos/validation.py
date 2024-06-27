@@ -8,28 +8,22 @@ import os
 import pydantic
 
 from phaistos.types.schema import TranspiledSchema
+from phaistos.consts import DISCOVERY_EXCEPTIONS
 
-ROOT_SCHEMAS_DIR = os.path.join(os.path.dirname(__file__), '..', 'schemas')
 
-
-def _discover_schemas(directory: str) -> list[type[TranspiledSchema]]:
+def _discover_schemas(target_path: str) -> list[type[TranspiledSchema]]:
     schemas: list[type[TranspiledSchema]] = []
-    for schema in os.listdir(directory):
+    for schema in os.listdir(target_path):
         if schema.startswith('_'):
             continue
 
-        absolute_path = f'{directory}/{schema}'
-        if not os.path.isdir(absolute_path):
-            import_path = 'phaistos.schemas.' + absolute_path \
-                .split(ROOT_SCHEMAS_DIR)[1] \
-                .removeprefix('/') \
-                .replace('/', '.') \
-                .removesuffix('.py')
-            logging.info(f'Importing schema: {import_path}')
+        schema_path = f'{target_path}/{schema}'
+        if not os.path.isdir(schema_path):
+            logging.info(f'Importing schema: {schema_path}')
 
             try:
                 schema_class = getattr(
-                    importlib.import_module(import_path),
+                    importlib.import_module(schema_path),
                     'Schema'
                 )
             except AttributeError:
@@ -52,7 +46,7 @@ def _discover_schemas(directory: str) -> list[type[TranspiledSchema]]:
             continue
 
         schemas.extend(
-            _discover_schemas(absolute_path)
+            _discover_schemas(schema_path)
         )
     return schemas
 
@@ -61,13 +55,21 @@ def _get_available_schemas() -> enum.Enum:
     class _RegisteredSchemas(enum.Enum):
         pass
 
-    for schema in _discover_schemas(ROOT_SCHEMAS_DIR):
-        setattr(_RegisteredSchemas, str(schema.__tag__), schema)
+    try:
+        for schema in _discover_schemas(
+            os.environ['PHAISTOS__SCHEMA_PATH']
+        ):
+            setattr(_RegisteredSchemas, str(schema.__tag__), schema)
+    except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
+        logging.error(
+            DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')
+        )
+        raise schema_discovery_error
 
     return _RegisteredSchemas  # type: ignore
 
 
-AvailableSchemas = _get_available_schemas()
+AvailableSchemas = enum.Enum('AvailableSchemas', {}) if os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY') else _get_available_schemas()
 
 
 class SchemaParsingException(Exception):
