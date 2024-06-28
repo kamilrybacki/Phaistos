@@ -90,21 +90,31 @@ SCHEMA_DISCOVERY_FAIL_CASES = [
     ),
     (
         """
-        os.remove('/tmp/phaistos_test_file')
-        open('/tmp/phaistos_test_file', 'w').close()
-        os.environ['PHAISTOS__SCHEMA_PATH'] = '/tmp/phaistos_test_file'
+        test_file_path = '/tmp/phaistos_test_file'
+        try:
+            os.remove(test_file_path)
+        except FileNotFoundError:
+            pass
+        open(test_file_path, 'w').close()
+        os.environ['PHAISTOS__SCHEMA_PATH'] = test_file_path
         """,
         NotADirectoryError,
     ),
     (
         """
-        os.environ['PHAISTOS__SCHEMA_PATH'] = '/etc/passwd'
+        test_dir_path = '/tmp/phaistos_test_dir'
+        try:
+            os.mkdir(test_dir_path)
+        except FileExistsError:
+            pass
+        os.chmod(test_dir_path, 0o04111)
+        os.environ['PHAISTOS__SCHEMA_PATH'] = test_dir_path
         """,
         PermissionError,
     ),
     (
         """
-
+        del os.environ['PHAISTOS__SCHEMA_PATH']
         """,
         KeyError,
     )

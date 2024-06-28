@@ -30,6 +30,10 @@ def test_schema_discovery_exceptions(
         phaistos.validation._get_available_schemas  # pylint: disable=protected-access
     )
 
+    original_schema_path = copy.deepcopy(
+        os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+    )
+
     def patched_get_available_schemas():
         patch_function = types.FunctionType(
             compile(
@@ -50,3 +54,4 @@ def test_schema_discovery_exceptions(
     with pytest.raises(exception):
         phaistos.validation._get_available_schemas()  # pylint: disable=protected-access
     logger.info(f'Successfully tested schema discovery exception: {exception.__name__}')
+    os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path

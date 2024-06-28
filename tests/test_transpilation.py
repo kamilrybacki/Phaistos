@@ -134,7 +134,7 @@ def test_module_shadowing(blocked_module, mock_config_file, logger):
     'exploit',
     consts.VULNERABILITIES_TO_TEST
 )
-def test_possible_expoits(exploit: dict[str, str], mock_config_file, logger):
+def test_possible_exploits(exploit: dict[str, str], mock_config_file, logger):
     try:
         schema = Transpiler.schema(
             schema=mock_config_file | {

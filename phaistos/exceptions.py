@@ -4,6 +4,11 @@ class ForbiddenModuleUseInValidator(ImportError):
         super().__init__(*args, name=name, path=path)
 
 
+class SchemaParsingException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
 class IncorrectFieldTypeError(ValueError):
     def __init__(self, field_type: str):
         if field_type in {'dict', 'object'}:

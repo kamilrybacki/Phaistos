@@ -9,6 +9,7 @@ import pydantic
 
 from phaistos.types.schema import TranspiledSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS
+from phaistos.exceptions import SchemaParsingException
 
 
 def _discover_schemas(target_path: str) -> list[type[TranspiledSchema]]:
@@ -70,11 +71,6 @@ def _get_available_schemas() -> enum.Enum:
 
 
 AvailableSchemas = enum.Enum('AvailableSchemas', {}) if os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY') else _get_available_schemas()
-
-
-class SchemaParsingException(Exception):
-    def __init__(self, message):
-        super().__init__(message)
 
 
 # pylint: disable=invalid-name
