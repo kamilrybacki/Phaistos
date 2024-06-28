@@ -16,7 +16,11 @@ import phaistos.consts  # noqa: E402
 
 @pytest.mark.parametrize(
     'hot_patch, exception',
-    consts.SCHEMA_DISCOVERY_FAIL_CASES
+    consts.SCHEMA_DISCOVERY_FAIL_CASES,
+    ids=[
+        exception.__name__
+        for _, exception in consts.SCHEMA_DISCOVERY_FAIL_CASES
+    ]
 )
 def test_schema_discovery_exceptions(
     hot_patch: str,

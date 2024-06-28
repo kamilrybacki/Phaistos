@@ -51,6 +51,10 @@ def _check_for_validators(
 @pytest.mark.parametrize(
     'patch',
     consts.MOCK_SCHEMA_PATCHES,
+    ids=[
+        '|'.join(patch.keys())
+        for patch in consts.MOCK_SCHEMA_PATCHES
+    ]
 )
 def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
     logger.info('Testing schema transpilation for patch: %s', {
@@ -105,11 +109,12 @@ def test_merged_schema(mock_config_file, logger):
 @pytest.mark.order(3)
 @pytest.mark.parametrize(
     'blocked_module',
-    BLOCKED_MODULES
+    BLOCKED_MODULES,
+    ids=BLOCKED_MODULES
 )
 def test_module_shadowing(blocked_module, mock_config_file, logger):
+    logger.info(f'Testing module shadowing for module: {blocked_module}')
     try:
-        logger.info(f'Testing module shadowing for module: {blocked_module}')
         Transpiler.supress_logging()
         forbidden_schema = Transpiler.schema(
             schema=mock_config_file | {
@@ -126,15 +131,18 @@ def test_module_shadowing(blocked_module, mock_config_file, logger):
     except ForbiddenModuleUseInValidator:
         Transpiler.enable_logging()
         return
-    pytest.fail(f'Didn\'t block module: {blocked_module}')
 
 
 @pytest.mark.order(4)
 @pytest.mark.parametrize(
     'exploit',
-    consts.VULNERABILITIES_TO_TEST
+    consts.VULNERABILITIES_TO_TEST,
+    ids=[
+        exploit['name']
+        for exploit in consts.VULNERABILITIES_TO_TEST
+    ]
 )
-def test_possible_exploits(exploit: dict[str, str], mock_config_file, logger):
+def test_possible_exploits(exploit: dict[str, str], mock_config_file):
     try:
         schema = Transpiler.schema(
             schema=mock_config_file | {
@@ -149,6 +157,5 @@ def test_possible_exploits(exploit: dict[str, str], mock_config_file, logger):
         )
         schema(whatever=42)  # type: ignore
     except ForbiddenModuleUseInValidator:
-        logger.info(f'Exploit "{exploit["name"]}" prevented')
         return
     pytest.fail(f'Exploit "{exploit["name"]}" wasn\'t prevented!')
