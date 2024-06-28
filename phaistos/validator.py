@@ -22,7 +22,7 @@ class Validator:
     def against_schema(cls, data: dict, schema: str) -> ValidationResults:
         cls._logger.info(f'Validating data against schema: {schema}')
         cls._logger.debug(f'Data: {data}')
-        return ValidationSchema.construct(schema).validate(data, cls._logger)
+        return cls.construct(schema).validate(data, cls._logger)
 
     @classmethod
     def construct(cls, name: str) -> ValidationSchema:
