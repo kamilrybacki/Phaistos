@@ -43,6 +43,7 @@ def __setup_logger(logger_name: str) -> logging.Logger:
 
 
 TRANSPILATION_LOGGER = __setup_logger('PHAISTOS (T)')
+VALIDATION_LOGGER = __setup_logger('PHAISTOS (V)')
 
 DISCOVERY_EXCEPTIONS = {
     FileNotFoundError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH points to a non-existent directory',

@@ -11,7 +11,7 @@ import pydantic
 
 import phaistos.consts
 import phaistos.exceptions
-from phaistos.types.schema import (
+from phaistos.types import (
     ParsedProperty,
     TranspiledProperty,
     TranspiledModelData,

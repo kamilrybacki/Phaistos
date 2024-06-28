@@ -7,7 +7,7 @@ import conftest
 import consts
 
 from phaistos.transpiler import Transpiler
-from phaistos.types.schema import TranspiledSchema
+from phaistos.types import TranspiledSchema
 from phaistos.consts import BLOCKED_MODULES
 from phaistos.exceptions import ForbiddenModuleUseInValidator
 
