@@ -14,5 +14,5 @@ description = "Tooling to automatically generate validated data models from YAML
 license = {file = "LICENSE"}
 dependencies = [
     "PyYAML==6.0.1",
-    "pydantic==2.7.0"
+    "pydantic==2.7.0",
 ]

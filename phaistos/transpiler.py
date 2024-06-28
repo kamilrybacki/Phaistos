@@ -16,8 +16,8 @@ from phaistos.types import (
     TranspiledProperty,
     TranspiledModelData,
     TranspiledPropertyValidator,
-    TranspiledSchema
 )
+from phaistos.schema import TranspiledSchema
 
 logging.basicConfig(level=logging.INFO)
 

@@ -6,11 +6,8 @@ import logging
 import os
 import typing
 
-from phaistos.types import (
-    TranspiledSchema,
-    ValidationResults,
-    ValidationSchema
-)
+from phaistos.types import ValidationResults
+from phaistos.schema import TranspiledSchema, ValidationSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
 from phaistos.exceptions import SchemaParsingException
 
