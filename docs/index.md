@@ -1,9 +1,7 @@
-# Phaistos
-
 <img
     src="https://raw.githubusercontent.com/kamilrybacki/Phaistos/main/.github/assets/phaistos_bw.png"
     alt="Phaistos"
-    style="display: block; margin-left: auto; margin-right: auto; width: 50%;"
+    style="display: block; margin-left: auto; margin-right: auto; width: 33%;"
 />
 
 Transcribing schemas from YAML-infused tablets to magical Pydantic validation models.

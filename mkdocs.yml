@@ -9,4 +9,4 @@ theme:
 plugins:
   - mkdocstrings
 nav:
-  - Home: index.md
+  - Phaistos: index.md
