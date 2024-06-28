@@ -1,7 +1,7 @@
 # Phaistos
 
 <img
-    src="https://raw.githubusercontent.com/kamilrybacki/Phaistos/main/.github/assets/phaistos.png"
+    src="https://raw.githubusercontent.com/kamilrybacki/Phaistos/main/.github/assets/phaistos_bw.png"
     alt="Phaistos"
     style="display: block; margin-left: auto; margin-right: auto; width: 50%;"
 />

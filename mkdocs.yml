@@ -1,6 +1,6 @@
 site_name: Phaistos
 theme:
-  name: gitbook
+  name: simple-blog
   highlightjs: true
   hljs_languages:
     - yaml
