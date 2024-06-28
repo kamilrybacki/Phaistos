@@ -1,5 +1,11 @@
 # Phaistos
 
+<img
+    src="assets/phaistos.png"
+    alt="Phaistos"
+    style="display: block; margin-left: auto; margin-right: auto; width: 50%;"
+/>
+
 Transcribing schemas from YAML-infused tablets to magical Pydantic validation models.
 
 ## Main Features
