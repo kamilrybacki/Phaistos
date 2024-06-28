@@ -1,6 +1,6 @@
 site_name: Phaistos
 theme:
-  name: readthedocs
+  name: gitbook
   highlightjs: true
   hljs_languages:
     - yaml
