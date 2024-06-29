@@ -1,22 +1,22 @@
 from __future__ import annotations
-import dataclasses
-import enum
 import importlib
 import logging
 import os
 import typing
 
-from phaistos.types import ValidationResults
+from phaistos.typings import ValidationResults
 from phaistos.schema import TranspiledSchema, ValidationSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
 from phaistos.exceptions import SchemaParsingException
 
 
-@dataclasses.dataclass()
 class Validator:
-    _schemas: typing.ClassVar[enum.Enum] = enum.Enum('AvailableSchemas', {})
-    _cache: typing.ClassVar[dict[str, ValidationSchema]] = {}
+    _schemas: typing.ClassVar[dict[str, ValidationSchema]] = {}
     _logger: typing.ClassVar[logging.Logger] = VALIDATION_LOGGER
+
+    def __post_init__(self):
+        if not os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY'):
+            self._schemas = self.get_available_schemas()
 
     @classmethod
     def against_schema(cls, data: dict, schema: str) -> ValidationResults:
@@ -26,12 +26,12 @@ class Validator:
 
     @classmethod
     def construct(cls, name: str) -> ValidationSchema:
-        if name not in cls._cache:
-            cls._cache[name] = ValidationSchema(
+        if name not in cls._schemas:
+            cls._schemas[name] = ValidationSchema(
                 name=name,
                 _model=cls.__load(name)  # type: ignore
             )
-        return cls._cache[name]
+        return cls._schemas[name]
 
     @classmethod
     def __load(cls, name: str) -> type[TranspiledSchema]:
@@ -44,24 +44,16 @@ class Validator:
             raise SchemaParsingException(
                 f'Schema {name} is not a valid schema'
             )
-        cls._cache[name] = schema
         return schema
 
-    def __post_init__(self):
-        self._schemas = enum.Enum('AvailableSchemas', {}) \
-            if os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY') \
-            else self.get_available_schemas()
-
     @classmethod
-    def get_available_schemas(cls) -> enum.Enum:
-        class _RegisteredSchemas(enum.Enum):
-            pass
-
+    def get_available_schemas(cls) -> dict[str, type[TranspiledSchema]]:
+        discovered_schemas = getattr(cls, '_schemas', {})
         try:
             for schema in cls.__discover_schemas(
                 os.environ['PHAISTOS__SCHEMA_PATH']
             ):
-                setattr(_RegisteredSchemas, str(schema.__tag__), schema)
+                discovered_schemas[str(schema.__tag__)] = schema
         except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
             cls._logger.error(
                 DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')
@@ -69,9 +61,9 @@ class Validator:
             raise schema_discovery_error
 
         cls._logger.info(
-            f'Available schemas: {", ".join([schema.__tag__ for schema in _RegisteredSchemas])}'
+            f'Available schemas: {", ".join(cls._schemas.keys())}'
         )
-        return _RegisteredSchemas  # type: ignore
+        return discovered_schemas
 
     @classmethod
     def __discover_schemas(cls, target_path: str) -> list[type[TranspiledSchema]]:

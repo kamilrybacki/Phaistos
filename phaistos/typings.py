@@ -25,13 +25,13 @@ class TranspiledModelData(typing.TypedDict):
     properties: dict[str, typing.Any]
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class FieldValidationError:
     name: str
     message: str
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class ValidationResults:
     valid: bool
     schema: dict

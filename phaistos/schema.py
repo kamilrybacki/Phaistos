@@ -5,7 +5,7 @@ import typing
 
 import pydantic
 
-from phaistos.types import TranspiledModelData, FieldValidationError, ValidationResults
+from phaistos.typings import TranspiledModelData, FieldValidationError, ValidationResults
 
 
 class TranspiledSchema(pydantic.BaseModel):
@@ -13,7 +13,6 @@ class TranspiledSchema(pydantic.BaseModel):
     model_config = {
         'from_attributes': True,
         'populate_by_name': True,
-        'frozen': True,
     }
 
     @classmethod
@@ -31,7 +30,7 @@ class TranspiledSchema(pydantic.BaseModel):
         return schema
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(kw_only=True)
 class ValidationSchema:
     name: str
     _model: type[TranspiledSchema]

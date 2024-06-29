@@ -11,7 +11,7 @@ import pydantic
 
 import phaistos.consts
 import phaistos.exceptions
-from phaistos.types import (
+from phaistos.typings import (
     ParsedProperty,
     TranspiledProperty,
     TranspiledModelData,
@@ -22,7 +22,7 @@ from phaistos.schema import TranspiledSchema
 logging.basicConfig(level=logging.INFO)
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass
 class Transpiler:
     _logger: typing.ClassVar[logging.Logger] = phaistos.consts.TRANSPILATION_LOGGER
 
