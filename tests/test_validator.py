@@ -8,10 +8,10 @@ import pytest
 
 os.environ['PHAISTOS__DISABLE_SCHEMA_DISCOVERY'] = 'True'
 
-import consts  # noqa: E402  # type: ignore
+import consts  # type: ignore
 
-import phaistos.validator  # noqa: E402
-import phaistos.consts  # noqa: E402
+import phaistos.validator
+import phaistos.consts
 
 
 @pytest.mark.parametrize(

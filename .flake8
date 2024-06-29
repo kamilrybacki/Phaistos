@@ -1,3 +1,4 @@
 [flake8]
 # ignore line length adjusted to internal standards
 max-line-length = 192
+ignore = E402
