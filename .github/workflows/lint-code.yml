@@ -1,4 +1,4 @@
-name: Check code style and typing
+name: Linting / Typing
 on: [push, pull_request]
 concurrency:
   group: ${{ github.ref }}-lint

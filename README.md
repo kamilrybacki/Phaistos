@@ -8,6 +8,9 @@
 
 Transcribing schemas from YAML-infused tablets to magical Pydantic validation models 🧙‍♂️🧙‍♀️
 
+![Linting Status](https://github.com/kamilrybacki/Phaistos/actions/workflows/lint-code.yml/badge.svg)
+![Testing Status](https://github.com/kamilrybacki/Phaistos/actions/workflows/code-tests.yml/badge.svg)
+
 ## Main Features
 
 The main goal of this project is to provide flexibility and utility in defining data models using YAML manifests,

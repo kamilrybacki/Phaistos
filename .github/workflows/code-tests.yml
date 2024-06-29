@@ -1,4 +1,4 @@
-name: Code tests
+name: Tests
 on: [push, pull_request]
 concurrency:
   group: ${{ github.ref }}-it
