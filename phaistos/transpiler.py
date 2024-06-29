@@ -96,7 +96,7 @@ class Transpiler:
     @classmethod
     def _transpile_nested_property(cls, prop: ParsedProperty) -> TranspiledProperty:
         class NestedPropertySchema(TranspiledSchema):
-            __tag__ = prop['name'].upper()
+            pass
 
         NestedPropertySchema.__name__ = f'{prop["name"].capitalize()}Schema'
         nested_model_transpilation = cls.properties([
@@ -145,7 +145,6 @@ class Transpiler:
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
         class RootSchema(TranspiledSchema):
-            __tag__: typing.ClassVar[str] = schema['name'].upper()
             version: typing.ClassVar[str] = schema['version']
             description: typing.ClassVar[str] = schema['description']
 

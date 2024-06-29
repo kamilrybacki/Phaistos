@@ -1,3 +1,4 @@
+import contextlib
 import logging
 import os
 import pydoc
@@ -38,14 +39,27 @@ def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
     return found_validators
 
 
-@pytest.fixture(scope='session')
-def mock_config_file() -> dict[str, typing.Any]:
+def __open_yaml_file(file_path: str) -> dict[str, typing.Any]:
     with open(
-        file=os.path.join(consts.TESTS_ASSETS_PATH, 'mock.yaml'),
+        file=file_path,
         mode='r',
         encoding='utf-8'
     ) as schema_file:
         return yaml.safe_load(schema_file)
+
+
+@pytest.fixture(scope='session')
+def mock_config_file_base() -> dict[str, typing.Any]:
+    return __open_yaml_file(
+        os.path.join(consts.TESTS_ASSETS_PATH, 'mock.yaml')
+    )
+
+
+@pytest.fixture(scope='session')
+def faulty_config_file() -> dict[str, typing.Any]:
+    return __open_yaml_file(
+        os.path.join(consts.TESTS_ASSETS_PATH, 'faulty.yaml')
+    )
 
 
 @pytest.fixture(scope='session')
@@ -61,3 +75,18 @@ def logger() -> logging.Logger:
     new_logger.addHandler(log_handler)
     new_logger.setLevel(logging.DEBUG)
     return new_logger
+
+
+def toggle_schema_discovery(state: bool) -> None:
+    if state:
+        with contextlib.suppress(KeyError):
+            del os.environ['PHAISTOS__DISABLE_SCHEMA_DISCOVERY']
+    else:
+        os.environ['PHAISTOS__DISABLE_SCHEMA_DISCOVERY'] = '1'
+
+
+@contextlib.contextmanager
+def schema_discovery(state: bool = True) -> typing.Generator[None, None, None]:
+    toggle_schema_discovery(state)
+    yield
+    toggle_schema_discovery(not state)

@@ -1,0 +1,19 @@
+underscore_in_name: &underscore_in_name
+  validator: |
+    if value.startswith('_'):
+        raise ValueError('Short name cannot start with underscore')
+
+version: v1
+name: FullMockConfig
+description: Mock configuration for data validation tests
+properties:
+  shortName:
+    type: str
+    description: Name of the configuration
+    default: _mock # This should raise an error
+    <<: *underscore_in_name
+  longName:
+    type: str
+    description: Long name of the configuration
+    default: _mock # This should raise an error
+    <<: *underscore_in_name

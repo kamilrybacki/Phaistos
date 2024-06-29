@@ -3,8 +3,8 @@ import typing
 
 import pytest
 
-import conftest
-import consts
+import conftest  # type: ignore
+import consts  # type: ignore
 
 from phaistos.transpiler import Transpiler
 from phaistos.schema import TranspiledSchema
@@ -12,7 +12,7 @@ from phaistos.consts import BLOCKED_MODULES
 from phaistos.exceptions import ForbiddenModuleUseInValidator
 
 
-def _catch_invalid_data(
+def _check_transpiled_validator(
     data: typing.Any,
     validator: typing.Callable,
     logger
@@ -22,7 +22,7 @@ def _catch_invalid_data(
     logger.info(f'Invalid data "{data}" caught successfully')
 
 
-def _check_for_validators(
+def _extract_transpiled_validators(
     transpiled_schema: type[TranspiledSchema],
     validators_to_check: list[tuple[str, str, list]]
 ) -> dict[str, tuple[typing.Any | None, list]]:
@@ -40,7 +40,7 @@ def _check_for_validators(
     ]
     for property_data in transpiled_schema.__dict__['__annotations__'].values():
         if '__pydantic_complete__' in property_data.__dict__:
-            validators_found |= _check_for_validators(
+            validators_found |= _extract_transpiled_validators(
                 transpiled_schema=property_data,
                 validators_to_check=validators_left,
             )
@@ -56,13 +56,13 @@ def _check_for_validators(
         for patch in consts.MOCK_SCHEMA_PATCHES
     ]
 )
-def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
+def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger):
     logger.info('Testing schema transpilation for patch: %s', {
         property: patch[property]['type'] if 'type' in patch[property] else 'nested'
         for property in patch
     })
     transpiled_schema = Transpiler.schema(
-        schema=mock_config_file | {
+        schema=mock_config_file_base | {
             'properties': patch
         }
     )
@@ -78,7 +78,7 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
         validator_to_check[1]
         for validator_to_check in validators_to_check
     ])
-    validator_check_results = _check_for_validators(transpiled_schema, validators_to_check)
+    validator_check_results = _extract_transpiled_validators(transpiled_schema, validators_to_check)
 
     assert all(
         result[0] is not None
@@ -87,7 +87,7 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
 
     for validator in validator_check_results.values():
         for sample in validator[1]:
-            _catch_invalid_data(
+            _check_transpiled_validator(
                 data=sample,
                 validator=validator[0],  # type: ignore
                 logger=logger
@@ -95,13 +95,13 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file, logger):
 
 
 @pytest.mark.order(2)
-def test_merged_schema(mock_config_file, logger):
+def test_merged_schema(mock_config_file_base, logger):
     logger.info('Testing schema transpilation for schema merged from ALL previous patches')
     test_patched_schema_transpilation(
         patch=dict(
             ChainMap(*consts.MOCK_SCHEMA_PATCHES)
         ),
-        mock_config_file=mock_config_file,
+        mock_config_file_base=mock_config_file_base,
         logger=logger
     )
 
@@ -112,12 +112,12 @@ def test_merged_schema(mock_config_file, logger):
     BLOCKED_MODULES,
     ids=BLOCKED_MODULES
 )
-def test_module_shadowing(blocked_module, mock_config_file, logger):
+def test_module_shadowing(blocked_module, mock_config_file_base, logger):
     logger.info(f'Testing module shadowing for module: {blocked_module}')
     try:
         Transpiler.supress_logging()
         forbidden_schema = Transpiler.schema(
-            schema=mock_config_file | {
+            schema=mock_config_file_base | {
                 'properties': {
                     'text': {
                         'description': 'Text to be displayed',
@@ -142,10 +142,10 @@ def test_module_shadowing(blocked_module, mock_config_file, logger):
         for exploit in consts.VULNERABILITIES_TO_TEST
     ]
 )
-def test_possible_exploits(exploit: dict[str, str], mock_config_file):
+def test_possible_exploits(exploit: dict[str, str], mock_config_file_base):
     try:
         schema = Transpiler.schema(
-            schema=mock_config_file | {
+            schema=mock_config_file_base | {
                 'properties': {
                     'whatever': {
                         'description': 'We care only about the validator',

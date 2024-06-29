@@ -1,7 +1,6 @@
 from __future__ import annotations
 import dataclasses
 import logging
-import typing
 
 import pydantic
 
@@ -9,7 +8,6 @@ from phaistos.typings import TranspiledModelData, FieldValidationError, Validati
 
 
 class TranspiledSchema(pydantic.BaseModel):
-    __tag__: typing.ClassVar[str]
     model_config = {
         'from_attributes': True,
         'populate_by_name': True,
@@ -17,7 +15,6 @@ class TranspiledSchema(pydantic.BaseModel):
 
     @classmethod
     def compile(cls, name: str, model_data: TranspiledModelData) -> type[TranspiledSchema]:
-        cls.__tag__ = name.upper()
         schema: type[TranspiledSchema] = pydantic.create_model(  # type: ignore
             name,
             __base__=TranspiledSchema,

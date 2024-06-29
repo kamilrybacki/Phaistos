@@ -1,9 +1,10 @@
 from __future__ import annotations
-import importlib
 import logging
 import os
 import typing
+import yaml
 
+from phaistos.transpiler import Transpiler
 from phaistos.typings import ValidationResults
 from phaistos.schema import TranspiledSchema, ValidationSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
@@ -14,7 +15,28 @@ class Validator:
     _schemas: typing.ClassVar[dict[str, ValidationSchema]] = {}
     _logger: typing.ClassVar[logging.Logger] = VALIDATION_LOGGER
 
-    def __post_init__(self):
+    __instance: typing.ClassVar[Validator] = None
+    __started: typing.ClassVar[bool] = False
+    __last_used_schemas_dir: typing.ClassVar[str] = ''
+
+    @classmethod
+    def start(cls) -> Validator:
+        if cls.__started and cls.__last_used_schemas_dir != os.environ.get('PHAISTOS__SCHEMA_PATH', ''):
+            cls._logger.info('Schema path has changed. Reloading schemas.')
+            cls.__instance = None
+            cls.__started = False
+        if not cls.__instance:
+            cls._logger.info('Starting Phaistos validator!')
+            cls.__started = True
+            cls.__last_used_schemas_dir = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+            cls.__instance = cls()
+        return cls.__instance
+
+    def __init__(self) -> None:
+        if not self.__started:
+            raise RuntimeError(
+                'Validator must be started using Validator.start()'
+            )
         if not os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY'):
             self._schemas = self.get_available_schemas()
 
@@ -36,24 +58,21 @@ class Validator:
     @classmethod
     def __load(cls, name: str) -> type[TranspiledSchema]:
         cls._logger.info(f'Loading schema: {name}')
-        schema = getattr(
-            cls._schemas,
-            name
-        )
-        if not issubclass(schema, TranspiledSchema):
+        schema = cls._schemas.get(name)
+        if not isinstance(schema, TranspiledSchema):
             raise SchemaParsingException(
                 f'Schema {name} is not a valid schema'
             )
         return schema
 
     @classmethod
-    def get_available_schemas(cls) -> dict[str, type[TranspiledSchema]]:
+    def get_available_schemas(cls, path: str = '') -> dict[str, type[TranspiledSchema]]:
         discovered_schemas = getattr(cls, '_schemas', {})
         try:
-            for schema in cls.__discover_schemas(
-                os.environ['PHAISTOS__SCHEMA_PATH']
-            ):
-                discovered_schemas[str(schema.__tag__)] = schema
+            schemas_dir = path or os.environ['PHAISTOS__SCHEMA_PATH']
+            for schema in cls.__discover_schemas(schemas_dir):
+                print(schema.__dict__)
+                discovered_schemas[schema.__name__] = schema
         except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
             cls._logger.error(
                 DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')
@@ -61,12 +80,13 @@ class Validator:
             raise schema_discovery_error
 
         cls._logger.info(
-            f'Available schemas: {", ".join(cls._schemas.keys())}'
+            f'Available schemas: {", ".join(discovered_schemas.keys())}'
         )
         return discovered_schemas
 
     @classmethod
     def __discover_schemas(cls, target_path: str) -> list[type[TranspiledSchema]]:
+        cls._logger.info(f'Discovering schemas in: {target_path}')
         schemas: list[type[TranspiledSchema]] = []
         for schema in os.listdir(target_path):
             if schema.startswith('_'):
@@ -76,22 +96,10 @@ class Validator:
             if not os.path.isdir(schema_path):
                 cls._logger.info(f'Importing schema: {schema_path}')
 
-                try:
-                    schema_class = getattr(
-                        importlib.import_module(schema_path),
-                        'Schema'
-                    )
-                except AttributeError:
-                    cls._logger.error(f'No Schema class found in {schema}')
-                    continue
-
-                if not issubclass(schema_class, TranspiledSchema):
-                    cls._logger.warning(f'Schema {schema} is not a valid schema')
-                    continue
-                if schema_class.__tag__ in [schema.__tag__ for schema in schemas]:
-                    cls._logger.info(f'Schema {schema} is already registered')
-                    continue
-                schemas.append(schema_class)
+                with open(schema_path, 'r', encoding='utf-8') as schema_file:
+                    schema_data = yaml.safe_load(schema_file)
+                    schema_class = Transpiler.schema(schema_data)
+                    schemas.append(schema_class)
                 continue
 
             nested_schemas = cls.__discover_schemas(schema_path)

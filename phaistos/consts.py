@@ -49,7 +49,6 @@ DISCOVERY_EXCEPTIONS = {
     FileNotFoundError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH points to a non-existent directory',
     NotADirectoryError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH points to a file',
     PermissionError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH is not accessible',
-    KeyError: 'Error while discovering schemas: PHAISTOS__SCHEMA_PATH not set'
 }
 
 # This is a list of modules that should not be available to the user
