@@ -23,7 +23,6 @@ The main features of Phaistos are:
 
 * Define data models using YAML manifests for easy readability, versioning and maintainability 🗄️
 * Add custom validators to data fields that are automatically injected into Pydantic models 💉
-* Store transcribed models as pickled entities for easy import and use in your Python projects 📦
 
 ### Why Phaistos? (as in - why the name?)
 
