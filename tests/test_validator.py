@@ -40,7 +40,7 @@ def test_schema_discovery_exceptions(
         os.environ.get('PHAISTOS__SCHEMA_PATH', '')
     )
 
-    def patched_get_available_schemas():
+    def patched_get_available_schemas(self: phaistos.Validator, path: str = ''):
         patch_function = types.FunctionType(
             compile(
                 textwrap.dedent(hot_patch),
@@ -50,7 +50,7 @@ def test_schema_discovery_exceptions(
             globals=globals()
         )
         patch_function()  # pylint: disable=not-callable
-        return original_get_available_schemas()
+        return original_get_available_schemas(self, path)
 
     monkeypatch.setattr(
         phaistos.Validator,
@@ -59,7 +59,7 @@ def test_schema_discovery_exceptions(
     )
 
     with pytest.raises(exception):
-        phaistos.Validator.get_available_schemas()  # pylint: disable=protected-access
+        phaistos.Validator.start()
     logger.info(f'Successfully tested schema discovery exception: {exception.__name__}')
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path
 

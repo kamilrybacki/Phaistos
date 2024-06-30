@@ -12,10 +12,10 @@ from phaistos.exceptions import SchemaParsingException
 
 
 class Validator:
-    _schemas: typing.ClassVar[dict[str, ValidationSchema]] = {}
+    _schemas: dict[str, ValidationSchema] = {}
     _logger: typing.ClassVar[logging.Logger] = VALIDATION_LOGGER
 
-    __instance: typing.ClassVar[Validator] = None
+    __instance: typing.ClassVar[Validator | None] = None
     __started: typing.ClassVar[bool] = False
     __last_used_schemas_dir: typing.ClassVar[str] = ''
 
@@ -40,54 +40,49 @@ class Validator:
         if not os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY'):
             self._schemas = self.get_available_schemas()
 
-    @classmethod
-    def against_schema(cls, data: dict, schema: str) -> ValidationResults:
-        cls._logger.info(f'Validating data against schema: {schema}')
-        return cls.construct(schema).validate(data)
+    def against_schema(self, data: dict, schema: str) -> ValidationResults:
+        self._logger.info(f'Validating data against schema: {schema}')
+        return self.construct(schema).validate(data)
 
-    @classmethod
-    def construct(cls, name: str) -> ValidationSchema:
-        if name not in cls._schemas:
-            cls._schemas[name] = ValidationSchema(
+    def construct(self, name: str) -> ValidationSchema:
+        if name not in self._schemas:
+            self._schemas[name] = ValidationSchema(
                 name=name,
-                _model=cls.__load(name)  # type: ignore
+                _model=self.__load(name)  # type: ignore
             )
-        return cls._schemas[name]
+        return self._schemas[name]
 
-    @classmethod
-    def __load(cls, name: str) -> type[TranspiledSchema]:
-        cls._logger.info(f'Loading schema: {name}')
-        schema = cls._schemas.get(name)
+    def __load(self, name: str) -> type[TranspiledSchema]:
+        self._logger.info(f'Loading schema: {name}')
+        schema = self._schemas.get(name)
         if not isinstance(schema, TranspiledSchema):
             raise SchemaParsingException(
                 f'Schema {name} is not a valid schema'
             )
         return schema
 
-    @classmethod
-    def get_available_schemas(cls, path: str = '') -> dict[str, type[TranspiledSchema]]:
-        discovered_schemas = getattr(cls, '_schemas', {})
+    def get_available_schemas(self, path: str = '') -> dict[str, ValidationSchema]:
+        discovered_schemas = getattr(self, '_schemas', {})
         try:
             schemas_dir = path or os.environ['PHAISTOS__SCHEMA_PATH']
-            for schema in cls.__discover_schemas(schemas_dir):
+            for schema in self.__discover_schemas(schemas_dir):
                 discovered_schemas[schema.__name__] = ValidationSchema(
                     name=schema.__name__,
                     _model=schema
                 )
         except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
-            cls._logger.error(
+            self._logger.error(
                 DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')
             )
             raise schema_discovery_error
 
-        cls._logger.info(
+        self._logger.info(
             f'Available schemas: {", ".join(discovered_schemas.keys())}'
         )
         return discovered_schemas
 
-    @classmethod
-    def __discover_schemas(cls, target_path: str) -> list[type[TranspiledSchema]]:
-        cls._logger.info(f'Discovering schemas in: {target_path}')
+    def __discover_schemas(self, target_path: str) -> list[type[TranspiledSchema]]:
+        self._logger.info(f'Discovering schemas in: {target_path}')
         schemas: list[type[TranspiledSchema]] = []
         for schema in os.listdir(target_path):
             if schema.startswith('_'):
@@ -95,7 +90,7 @@ class Validator:
 
             schema_path = f'{target_path}/{schema}'
             if not os.path.isdir(schema_path):
-                cls._logger.info(f'Importing schema: {schema_path}')
+                self._logger.info(f'Importing schema: {schema_path}')
 
                 with open(schema_path, 'r', encoding='utf-8') as schema_file:
                     schema_data = yaml.safe_load(schema_file)
@@ -103,6 +98,6 @@ class Validator:
                     schemas.append(schema_class)
                 continue
 
-            nested_schemas = cls.__discover_schemas(schema_path)
+            nested_schemas = self.__discover_schemas(schema_path)
             schemas.extend(nested_schemas)
         return schemas
