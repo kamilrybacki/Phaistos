@@ -19,7 +19,7 @@ class TranspiledSchema(pydantic.BaseModel):
             __base__=TranspiledSchema,
             __validators__={
                 validator['name']: validator['method']
-                for validator in model_data['validators']
+                for validator in model_data['validator']
             },
             **model_data['properties']
         )

@@ -32,11 +32,11 @@ class TranspiledPropertyValidator(typing.TypedDict):
 class TranspiledProperty(typing.TypedDict):
     type: type
     default: typing.Any
-    validators: TranspiledPropertyValidator
+    validator: TranspiledPropertyValidator
 
 
 class TranspiledModelData(typing.TypedDict):
-    validators: list[TranspiledPropertyValidator]
+    validator: list[TranspiledPropertyValidator]
     properties: dict[str, typing.Any]
 
 
