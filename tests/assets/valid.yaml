@@ -7,7 +7,7 @@ properties:
     type: str
     description: Name of the configuration
     default: mock
-    validators: |
+    validator: |
       if value.startswith('_'):
           raise ValueError('Short name cannot start with underscore')
   someStrings:

@@ -1,5 +1,5 @@
 underscore_in_name: &underscore_in_name
-  validators: |
+  validator: |
     if value.startswith('_'):
         raise ValueError('Short name cannot start with underscore')
 

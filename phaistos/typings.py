@@ -8,8 +8,8 @@ from phaistos.consts import DEFAULT_INDENTATION
 class RawSchemaProperty(typing.TypedDict):
     type: str
     description: str
-    default: typing.Any
-    validators: str | list[str]
+    validator: str | list[str]
+    default: typing.Optional[typing.Any]
 
 
 class SchemaInputFile(typing.TypedDict):

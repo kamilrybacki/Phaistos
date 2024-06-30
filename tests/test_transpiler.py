@@ -122,7 +122,7 @@ def test_module_shadowing(blocked_module, mock_config_file_base, logger):
                     'text': {
                         'description': 'Text to be displayed',
                         'type': 'str',
-                        'validators': f'if {blocked_module}.LOCK: {blocked_module}.some_attribute'
+                        'validator': f'if {blocked_module}.LOCK: {blocked_module}.some_attribute'
                     }
                 }
             }
@@ -150,7 +150,7 @@ def test_possible_exploits(exploit: dict[str, str], mock_config_file_base):
                     'whatever': {
                         'description': 'We care only about the validator',
                         'type': 'int',
-                        'validators': exploit['code']
+                        'validator': exploit['code']
                     }
                 }
             }

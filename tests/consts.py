@@ -39,7 +39,7 @@ MOCK_SCHEMA_PATCHES: list[
         'tags': {
             'description': 'Tags for the test',
             'type': 'list[str]',
-            'validators': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
+            'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
             'invalid': [
                 ['tag1'],
                 [None, None, None]
@@ -50,7 +50,7 @@ MOCK_SCHEMA_PATCHES: list[
         'income': {
             'description': 'Income of the test',
             'type': 'float',
-            'validators': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
+            'validator': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
             'invalid': [
                 999.99,
                 0.0,
@@ -60,7 +60,7 @@ MOCK_SCHEMA_PATCHES: list[
         'label': {
             'description': 'Name of the test',
             'type': 'str',
-            'validators': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
+            'validator': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
             'invalid': [
                 'na$!',
                 '',
@@ -79,7 +79,7 @@ MOCK_SCHEMA_PATCHES: list[
                 'age_name': {
                     'description': 'Age of the nested test',
                     'type': 'int',
-                    'validators': "if value < 18: raise ValueError('Age must be more than 18')",
+                    'validator': "if value < 18: raise ValueError('Age must be more than 18')",
                     'invalid': [
                         17,
                         0,
