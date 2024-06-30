@@ -9,9 +9,10 @@ import yaml
 
 import consts
 import phaistos.consts
+import phaistos.typings
 
 
-def create_mock_schema_data(applied_properties: dict) -> dict:
+def create_mock_schema_data(applied_properties: dict[str, phaistos.typings.RawSchemaProperty]) -> dict[str, typing.Any]:
     data = {}
     for property_name, property_data in applied_properties.items():
         if 'default' in property_data:
@@ -32,14 +33,14 @@ def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
             property_data['type'],
             phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % property_name,
             property_data['invalid']
-        )] if 'validator' in property_data else []
+        )] if 'validators' in property_data else []
         found_validators.extend(
             find_custom_validators(property_data.get('properties', {}))
         )
     return found_validators
 
 
-def __open_yaml_file(file_path: str) -> dict[str, typing.Any]:
+def __open_yaml_file(file_path: str) -> phaistos.typings.SchemaInputFile:
     with open(
         file=file_path,
         mode='r',
@@ -49,16 +50,23 @@ def __open_yaml_file(file_path: str) -> dict[str, typing.Any]:
 
 
 @pytest.fixture(scope='session')
-def mock_config_file_base() -> dict[str, typing.Any]:
+def mock_config_file_base() -> phaistos.typings.SchemaInputFile:
     return __open_yaml_file(
         os.path.join(consts.TESTS_ASSETS_PATH, 'mock.yaml')
     )
 
 
 @pytest.fixture(scope='session')
-def faulty_config_file() -> dict[str, typing.Any]:
+def faulty_config_file() -> phaistos.typings.SchemaInputFile:
     return __open_yaml_file(
         os.path.join(consts.TESTS_ASSETS_PATH, 'faulty.yaml')
+    )
+
+
+@pytest.fixture(scope='session')
+def valid_config_file() -> phaistos.typings.SchemaInputFile:
+    return __open_yaml_file(
+        os.path.join(consts.TESTS_ASSETS_PATH, 'valid.yaml')
     )
 
 

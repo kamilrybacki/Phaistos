@@ -1,6 +1,7 @@
 # pylint: disable=wrong-import-position
 import copy
 import os
+import shutil
 import textwrap
 import types
 import yaml
@@ -12,6 +13,7 @@ import conftest  # type: ignore
 
 import phaistos
 import phaistos.consts
+from phaistos.typings import SchemaInputFile
 
 
 @pytest.mark.parametrize(
@@ -62,35 +64,52 @@ def test_schema_discovery_exceptions(
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path
 
 
-def test_full_schema_validation(faulty_config_file):
-    temporary_schema_directory = f'/tmp/{faulty_config_file["name"]}'
+def _run_data_validation(
+    schema: SchemaInputFile,
+    validator: phaistos.Validator,
+    logger
+):
+    data_from_schema = conftest.create_mock_schema_data(
+        applied_properties=schema['properties']
+    )
+
+    logger.info(f'Validating data {data_from_schema} against schema: {schema["name"]}')
+
+    results = validator.against_schema(
+        data=data_from_schema,
+        schema=schema['name']
+    )
+
+    logger.info(f'Validation results:\n{results}')
+
+    assert results.valid == schema['_valid']  # type: ignore
+    del validator
+
+
+def test_schema_validation_workflow(faulty_config_file, valid_config_file, logger):
+    temporary_schema_directory = '/tmp/phaistos_test_configs'
+    shutil.rmtree(temporary_schema_directory, ignore_errors=True)
     os.makedirs(temporary_schema_directory, exist_ok=True)
 
-    temporary_schema_name = f'mock-{faulty_config_file["version"]}.yaml'
-
-    with open(
-        file=f'{temporary_schema_directory}/{temporary_schema_name}',
-        mode='w',
-        encoding='utf-8'
-    ) as schema_file:
-        yaml.dump(
-            faulty_config_file,
-            schema_file
-        )
+    for config_file in [
+        faulty_config_file,
+        valid_config_file
+    ]:
+        temporary_schema_name = f'mock-{config_file["name"]}-{config_file["version"]}.yaml'
+        with open(
+            file=f'{temporary_schema_directory}/{temporary_schema_name}',
+            mode='w',
+            encoding='utf-8'
+        ) as schema_file:
+            yaml.dump(config_file, schema_file)
+        logger.info(f'Created temporary schema: {temporary_schema_name}')
 
     initial_schema_path = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+    os.environ['PHAISTOS__SCHEMA_PATH'] = temporary_schema_directory
+
     with conftest.schema_discovery():
-        os.environ['PHAISTOS__SCHEMA_PATH'] = temporary_schema_directory
+        validator: phaistos.Validator = phaistos.Validator.start()
+        for schema in [faulty_config_file, valid_config_file]:
+            _run_data_validation(schema, validator, logger)
 
-        validator = phaistos.Validator.start()
-
-        data_from_schema = conftest.create_mock_schema_data(
-            applied_properties=faulty_config_file['properties']
-        )
-
-        validator.against_schema(
-            data=data_from_schema,
-            schema=faulty_config_file['name']
-        )
-
-        os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
+    os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path

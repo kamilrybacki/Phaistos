@@ -1,5 +1,8 @@
 import os
 import random
+import typing
+
+import phaistos.typings
 
 TESTS_ASSETS_PATH = os.path.join(
     os.path.dirname(__file__),
@@ -7,7 +10,14 @@ TESTS_ASSETS_PATH = os.path.join(
 )
 RANDOM_DATA = ''.join(str(random.randint(0, 9)) for _ in range(10))
 
-MOCK_SCHEMA_PATCHES = [
+
+class MockRawSchemaProperty(phaistos.typings.RawSchemaProperty):
+    invalid: list[typing.Any]
+
+
+MOCK_SCHEMA_PATCHES: list[
+    dict[str, MockRawSchemaProperty]
+] = [
     {
         'name': {
             'description': 'Name of the test',
@@ -29,7 +39,7 @@ MOCK_SCHEMA_PATCHES = [
         'tags': {
             'description': 'Tags for the test',
             'type': 'list[str]',
-            'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
+            'validators': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
             'invalid': [
                 ['tag1'],
                 [None, None, None]
@@ -40,7 +50,7 @@ MOCK_SCHEMA_PATCHES = [
         'income': {
             'description': 'Income of the test',
             'type': 'float',
-            'validator': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
+            'validators': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
             'invalid': [
                 999.99,
                 0.0,
@@ -50,7 +60,7 @@ MOCK_SCHEMA_PATCHES = [
         'label': {
             'description': 'Name of the test',
             'type': 'str',
-            'validator': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
+            'validators': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
             'invalid': [
                 'na$!',
                 '',
@@ -69,7 +79,7 @@ MOCK_SCHEMA_PATCHES = [
                 'age_name': {
                     'description': 'Age of the nested test',
                     'type': 'int',
-                    'validator': "if value < 18: raise ValueError('Age must be more than 18')",
+                    'validators': "if value < 18: raise ValueError('Age must be more than 18')",
                     'invalid': [
                         17,
                         0,
@@ -81,7 +91,9 @@ MOCK_SCHEMA_PATCHES = [
     }
 ]
 
-SCHEMA_DISCOVERY_FAIL_CASES = [
+SCHEMA_DISCOVERY_FAIL_CASES: list[
+    tuple[str, type[Exception]]
+] = [
     (
         """
         os.environ['PHAISTOS__SCHEMA_PATH'] = '/invalid/path'

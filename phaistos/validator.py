@@ -43,8 +43,7 @@ class Validator:
     @classmethod
     def against_schema(cls, data: dict, schema: str) -> ValidationResults:
         cls._logger.info(f'Validating data against schema: {schema}')
-        cls._logger.debug(f'Data: {data}')
-        return cls.construct(schema).validate(data, cls._logger)
+        return cls.construct(schema).validate(data)
 
     @classmethod
     def construct(cls, name: str) -> ValidationSchema:
@@ -71,8 +70,10 @@ class Validator:
         try:
             schemas_dir = path or os.environ['PHAISTOS__SCHEMA_PATH']
             for schema in cls.__discover_schemas(schemas_dir):
-                print(schema.__dict__)
-                discovered_schemas[schema.__name__] = schema
+                discovered_schemas[schema.__name__] = ValidationSchema(
+                    name=schema.__name__,
+                    _model=schema
+                )
         except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
             cls._logger.error(
                 DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')

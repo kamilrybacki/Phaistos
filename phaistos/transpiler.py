@@ -35,7 +35,7 @@ class Transpiler:
         validator_key = phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
         rendered_function_source_code = phaistos.consts.VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
             validator_key,
-            prop['data'].get('validator', '').replace(
+            prop['data'].get('validators', '').replace(
                 '\n',
                 f'\n{phaistos.consts.DEFAULT_INDENTATION}'
             )
@@ -70,7 +70,7 @@ class Transpiler:
                     )
                 ),
                 default=prop['data'].get('default', ...),
-                validator=cls.validator(prop),
+                validators=cls.validator(prop),
             )
         return cls._transpile_nested_property(prop)
 
@@ -81,7 +81,7 @@ class Transpiler:
             prop['data']['type']
         ):
             cls._check_if_collection_type_is_allowed(match['collection'])
-            prop['data']['validator'] = prop['data'].get('validator', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
+            prop['data']['validators'] = prop['data'].get('validators', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
                 match['item'],
                 prop['name'],
                 match['item']
@@ -113,7 +113,7 @@ class Transpiler:
         return TranspiledProperty(
             type=compiled_nested_schema,
             default=...,
-            validator=cls.validator(prop)
+            validators=cls.validator(prop)
         )
 
     @classmethod
@@ -133,7 +133,7 @@ class Transpiler:
         }
         return TranspiledModelData(
             validators=[
-                property_data['validator']
+                property_data['validators']
                 for property_data in transpiled_model_data.values()
                 if not isinstance(property_data, type)
             ],

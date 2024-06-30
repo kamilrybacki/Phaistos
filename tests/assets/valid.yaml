@@ -1,0 +1,20 @@
+_valid: true
+version: v1
+name: ValidConfig
+description: Mock configuration for data validation tests
+properties:
+  name:
+    type: str
+    description: Name of the configuration
+    default: mock
+    validators: |
+      if value.startswith('_'):
+          raise ValueError('Short name cannot start with underscore')
+  someStrings:
+    type: list[str]
+    description: List of strings
+    default: [
+      'string1',
+      'string2',
+      'string3'
+    ]

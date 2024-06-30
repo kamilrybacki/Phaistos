@@ -1,10 +1,11 @@
 underscore_in_name: &underscore_in_name
-  validator: |
+  validators: |
     if value.startswith('_'):
         raise ValueError('Short name cannot start with underscore')
 
+_valid: false
 version: v1
-name: FullMockConfig
+name: FaultyConfig
 description: Mock configuration for data validation tests
 properties:
   shortName:
