@@ -10,3 +10,5 @@ plugins:
   - mkdocstrings
 nav:
   - Phaistos: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
