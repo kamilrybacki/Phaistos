@@ -1,9 +1,9 @@
 name: Build and publish Phaistos
 run-name: Publish Phaistos distributions to PyPI and TestPyPI 🐍
 on:
-  release:
-    types:
-      - published
+  push:
+    tags:
+      - "v*"
 concurrency:
   group: ${{ github.ref }}-publish
   cancel-in-progress: true
@@ -13,7 +13,7 @@ jobs:
     name: Build Phaistos package 📦
     runs-on: ubuntu-latest
     env:
-      RELEASE_VERSION: ${{ github.event.release.tag_name }}
+      RELEASE_VERSION: ${{ github.event.ref }}
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
