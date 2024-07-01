@@ -12,6 +12,7 @@ name = "phaistos"
 version = "0.1.0"
 description = "Tooling to automatically generate validated data models from YAML configuration files"
 license = {file = "LICENSE"}
+readme = {file = "README.md", content-type = "text/markdown"}
 dependencies = [
     "PyYAML==6.0.1",
     "pydantic==2.7.0",
