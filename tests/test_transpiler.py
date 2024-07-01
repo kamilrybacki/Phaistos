@@ -56,7 +56,7 @@ def _extract_transpiled_validators(
         for patch in consts.MOCK_SCHEMA_PATCHES
     ]
 )
-def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger):
+def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger) -> None:
     logger.info('Testing schema transpilation for patch: %s', {
         property: patch[property]['type'] if 'type' in patch[property] else 'nested'
         for property in patch
@@ -95,7 +95,7 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
 
 
 @pytest.mark.order(2)
-def test_merged_schema(mock_config_file_base, logger):
+def test_merged_schema(mock_config_file_base, logger) -> None:
     logger.info('Testing schema transpilation for schema merged from ALL previous patches')
     test_patched_schema_transpilation(
         patch=dict(
@@ -112,7 +112,7 @@ def test_merged_schema(mock_config_file_base, logger):
     BLOCKED_MODULES,
     ids=BLOCKED_MODULES
 )
-def test_module_shadowing(blocked_module, mock_config_file_base, logger):
+def test_module_shadowing(blocked_module, mock_config_file_base, logger) -> None:
     logger.info(f'Testing module shadowing for module: {blocked_module}')
     try:
         Transpiler.supress_logging()
@@ -142,7 +142,7 @@ def test_module_shadowing(blocked_module, mock_config_file_base, logger):
         for exploit in consts.VULNERABILITIES_TO_TEST
     ]
 )
-def test_possible_exploits(exploit: dict[str, str], mock_config_file_base):
+def test_possible_exploits(exploit: dict[str, str], mock_config_file_base) -> None:
     try:
         schema = Transpiler.schema(
             schema=mock_config_file_base | {

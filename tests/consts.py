@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 import random
 import typing
@@ -12,7 +13,8 @@ RANDOM_DATA = ''.join(str(random.randint(0, 9)) for _ in range(10))
 
 
 class MockRawSchemaProperty(phaistos.typings.RawSchemaProperty):
-    invalid: list[typing.Any]
+    invalid: typing.NotRequired[list[typing.Any]]
+    properties: typing.NotRequired[dict[str, MockRawSchemaProperty]]  # type: ignore
 
 
 MOCK_SCHEMA_PATCHES: list[

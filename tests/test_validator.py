@@ -29,7 +29,7 @@ def test_schema_discovery_exceptions(
     exception: type[Exception],
     logger,
     monkeypatch
-):
+) -> None:
     logger.info(f'Testing schema discovery exception: {exception.__name__}')
 
     original_get_available_schemas = copy.deepcopy(
@@ -68,7 +68,7 @@ def _run_data_validation(
     schema: SchemaInputFile,
     validator: phaistos.Validator,
     logger
-):
+) -> None:
     data_from_schema = conftest.create_mock_schema_data(
         applied_properties=schema['properties']
     )
@@ -86,7 +86,7 @@ def _run_data_validation(
     del validator
 
 
-def test_schema_validation_workflow(faulty_config_file, valid_config_file, logger):
+def test_schema_validation_workflow(faulty_config_file, valid_config_file, logger) -> None:
     temporary_schema_directory = '/tmp/phaistos_test_configs'
     shutil.rmtree(temporary_schema_directory, ignore_errors=True)
     os.makedirs(temporary_schema_directory, exist_ok=True)

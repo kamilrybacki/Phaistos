@@ -7,7 +7,7 @@ import typing
 import pytest
 import yaml
 
-import consts
+import consts  # type: ignore
 import phaistos.consts
 import phaistos.typings
 

@@ -6,10 +6,11 @@ from phaistos.consts import DEFAULT_INDENTATION
 
 
 class RawSchemaProperty(typing.TypedDict):
-    type: str
     description: str
-    validator: str | list[str]
-    default: typing.Optional[typing.Any]
+    type: typing.NotRequired[str]
+    default: typing.NotRequired[typing.Any]
+    validator: typing.NotRequired[str]
+    properties: typing.NotRequired[dict[str, RawSchemaProperty]]
 
 
 class SchemaInputFile(typing.TypedDict):
