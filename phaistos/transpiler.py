@@ -12,6 +12,7 @@ import pydantic
 import phaistos.consts
 import phaistos.exceptions
 from phaistos.typings import (
+    SchemaInputFile,
     ParsedProperty,
     TranspiledProperty,
     TranspiledModelData,
@@ -141,7 +142,7 @@ class Transpiler:
         )
 
     @classmethod
-    def schema(cls, schema: dict[str, typing.Any]) -> type[TranspiledSchema]:
+    def schema(cls, schema: SchemaInputFile) -> type[TranspiledSchema]:
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
         class RootSchema(TranspiledSchema):

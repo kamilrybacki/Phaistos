@@ -16,12 +16,13 @@ class RawSchemaProperty(typing.TypedDict):
 class SchemaInputFile(typing.TypedDict):
     version: str
     name: str
+    description: str
     properties: dict[str, RawSchemaProperty]
 
 
 class ParsedProperty(typing.TypedDict):
     name: str
-    data: dict[str, typing.Any]
+    data: RawSchemaProperty
 
 
 class TranspiledPropertyValidator(typing.TypedDict):
