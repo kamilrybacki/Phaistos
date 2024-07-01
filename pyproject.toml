@@ -17,3 +17,15 @@ dependencies = [
     "PyYAML==6.0.1",
     "pydantic==2.7.0",
 ]
+authors = [
+    { name="Kamil Rybacki", email="kamilandrzejrybacki@gmail.com" }
+]
+requires-python = ">=3.12"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+homepage = "https://phaistos.readthedocs.io/en/latest/"
