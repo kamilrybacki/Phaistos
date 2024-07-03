@@ -28,7 +28,7 @@ Here is a simple example of how you can use the `Validator` object to validate d
 from phaistos import Validator
 
 # Initialize the Validator
-validator = Validator()
+validator = Validator.start()
 
 # Validate data against the schema
 data = {
@@ -44,6 +44,21 @@ result = validator.against_schema(
     data=data,
     schema_name=schema_name
 )
+```
+
+As You can see, the `Validator` object is to be instantiated using the `start` method, due to the fact that it is a **singleton** object. This means that you can only have one instance of the `Validator` object in your application.
+
+`phaistos.validator.Validator.start`
+
+::: phaistos.validator.Validator.start
+
+Trying to directly instantiate the `Validator` object will raise an error:
+
+```python
+from phaistos import Validator
+
+# This will raise an error
+validator = Validator()
 ```
 
 Below is the signature of the `against_schema` method:
