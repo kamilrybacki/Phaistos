@@ -12,13 +12,13 @@ Below, the main methods of the transpiler are described.
 
 This action is performed by `schema` method and is responsible for converting the YAML schema into a Pydantic model and returns it.
 
-#### `phaistos.transpiler.Transpiler.schema`
+###### `phaistos.transpiler.Transpiler.schema`
 
 ::: phaistos.transpiler.Transpiler.schema
 
 As for the information returned by this method, it is a Pydantic model, which can be used to validate the data with some fields automatically injected during transpilation:
 
-#### `phaistos.schema.TranspiledSchema`
+###### `phaistos.schema.TranspiledSchema`
 
 ::: phaistos.schema.TranspiledSchema
 

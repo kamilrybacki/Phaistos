@@ -46,14 +46,19 @@ result = validator.against_schema(
 )
 ```
 
+Below is the signature of the `against_schema` method:
+
+###### `phaistos.validator.Validator.against_schema`
+
+::: phaistos.validator.Validator.against_schema
+
 ## Validation result
 
-After each validation, the `against_schema` method returns a `ValidationResult` object that contains the validation result. The `ValidationResult` object has the following attributes:
+After each validation, the `against_schema` method returns a `ValidationResult` object that contains the validation result.
 
-- `is_valid`: A boolean that indicates if the data is valid against the schema.
-- `errors`: A list of errors that occurred during the validation process. If the data is valid, this list will be empty.
-- `schema`: The schema that was used for validation.
-- `data`: The data that was validated against the schema.
+###### `phaistos.typings.ValidationResult`
+
+::: phaistos.typings.ValidationResult
 
 You can access these attributes to get more information about the validation result:
 
