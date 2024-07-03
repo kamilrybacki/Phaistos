@@ -1,11 +1,17 @@
 site_name: Phaistos
 theme:
-  name: simple-blog
+  name: material
   highlightjs: true
   hljs_languages:
     - yaml
     - python
   favicon: assets/images/favicon.ico
+  palette:
+    scheme: slate
+    primary: black
+    accent: lime
+  text: Fira Sans
+  code: Fira Mono
 plugins:
   - mkdocstrings
 nav:

@@ -1,2 +1,2 @@
-mkdocstrings [python] == 0.23.0
-mkdocs-simple-blog==0.0.9
+mkdocstrings [python]
+mkdocs-material

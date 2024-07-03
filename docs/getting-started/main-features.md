@@ -55,7 +55,7 @@ Each of these steps will be described in more detail in the following sections.
 
 That a valid question, given the fact that there is, for example, a tool
 that takes schemas defined in JSON and converts them into Pydantic models
-called [`datamodel-code-generator`].
+called [datamodel-code-generator](https://github.com/koxudaxi/datamodel-code-generator).
 
 The main reason that Phaistos was created is to provide a more flexible and
 customizable way of defining data models, **especially** when it comes
@@ -72,5 +72,3 @@ So instead of trying to dance around serialization limitations of complex
 classes in Python (which is a whole different can of worms), we can
 quickly install Phaistos in the project and start using it to validate
 data against the defined schemas - which can be leveraged in distributed ETL pipelines (e.g. within Apache Spark workers), APIs, configurations, and more.
-
-[`datamodel-code-generator`]: https://github.com/koxudaxi/datamodel-code-generator
