@@ -1,5 +1,11 @@
 ## What are the main features of Phaistos?
 
+<span style="font-size: 1.25em;margin-left: auto;,margin-right: auto;">
+    <b>tl;dr</b>: Python reflections that spit out Pydantic models from YAML schemas.
+</span>
+<br/>
+<br/>
+
 The main goal of this project is to provide flexibility and utility in defining data models using YAML manifests, that include information about:
 
 * **Data fields and their types**

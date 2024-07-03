@@ -78,7 +78,7 @@ The main rules are:
 4. **DO NOT** use the `return` statement in the code snippet.
 
 The **compiled** validator function will be composed of the following parts:
-0103352024/ZO/GK/010335 
+
 ```python
 def validate_<FIELD_NAME>(value: <FIELD_TYPE>) -> <FIELD_TYPE>:
     # Custom validator code
@@ -94,3 +94,70 @@ This is done **automagically** by the Phaistos transpiler, so you don't have to 
 There are modules which are considered critical and are blocked from being imported in the custom validator code. This is done to prevent any malicious code from being executed when the Pydantic model is created.
 
 The list of blocked modules is as follows: `os`, `sys`, `importlib`, `pydoc`, `subprocess`, `pickle`, `shutil`, `tempfile`, `inspect`, `shlex`.
+
+### Transpilation result
+
+To visualize to result of the transpilation, let's consider the following schema manifest:
+
+```yaml
+version: 1
+name: Person
+description: A simple person schema
+properties:
+    name:
+        type: str
+        description: The name of the person
+        validator?: |
+            if len(value) < 3:
+                raise ValueError("Name must be at least 3 characters long")
+    age:
+        type: int
+        description: The age of the person
+        validator?: |
+            if value < 0:
+                raise ValueError("Age must be a positive number")
+    friends:
+        type: list[str]
+        description: The list of friends of the person
+    address:
+        description: The address of the person
+        properties:
+            street:
+                type: str
+                description: The street of the address
+            city:
+                type: str
+                description: The city of the address
+            zip_code:
+                type: int
+                description: The ZIP code of the address
+```
+
+The transpiled Pydantic model will look like this:
+
+```python
+from pydantic import BaseModel
+
+class Address(BaseModel):
+    street: str
+    city: str
+    zip_code: int
+
+class Person(BaseModel):
+    name: str
+    age: int
+    friends: list[str]
+    address: Address
+
+    def validate_name(value: str) -> str:
+        if len(value) < 3:
+            raise ValueError("Name must be at least 3 characters long")
+        return value
+
+    def validate_age(value: int) -> int:
+        if value < 0:
+            raise ValueError("Age must be a positive number")
+        return value
+```
+
+This model becomes a part of available Pydantic models in the Phaistos validator, and you can use it to validate data against the schema.
