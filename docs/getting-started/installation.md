@@ -37,6 +37,7 @@ The discovery is performed **during the first initialization** of `Validator`
 class.
 
 Want to disable the schema discovery?
+
 Just define the `PHAISTOS__DISABLE_SCHEMA_DISCOVERY` environment variable
 with any value. This will be accounted during the aforementioned initialization
 and allow You to perform the schema loading manually.

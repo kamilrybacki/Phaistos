@@ -16,8 +16,8 @@ plugins:
   - mkdocstrings
 nav:
   - Welcome: index.md
-  - Installation: installation.md
   - Getting Started:
+    - Installation: getting-started/installation.md
     - Main Features: getting-started/main-features.md
     - Defining a schema: getting-started/schema.md
     - Using the Validator: getting-started/validator.md
