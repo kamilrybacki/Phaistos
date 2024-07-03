@@ -24,18 +24,29 @@ by passing the data to the Pydantic model and the name of the schema to validate
 The diagram below illustrates the general workflow of the Phaistos transpiler:
 
 ```mermaid
+%%{
+  init: {
+    'themeVariables': {
+      'lineColor': '#000'
+    }
+  }
+}%%
 flowchart TD
     A[Parsing schema for custom data types in YAML manifests] --> B[Transpiling properties into Pydantic Field objects]
-    B --> C{Field contains custom data validator?}
+    B --> C{{Field contains custom data validator?}}
     C -->|Yes| C1[Extract validator code from schema]
-    C1 --> C2[Inject into default validator function before `return`]
-    C2 --> C3[Shadow critical Python modules e.g., block `os`]
+    C1 --> C2[Inject into default validator function before return statement]
+    C2 --> C3[Shadow critical Python modules e.g. block os module]
     C3 --> C4[Compile validator function and return]
     C -->|No| D[Skip custom code injection]
-    C4 --> E[For `list` type fields: add validation for each element type]
+    C4 --> E[For list-type fields: add validation for each element type]
     D --> E
-    E --> F[For `dict` type fields: transpile as nested schema recursively]
+    E --> F[For dict-type fields: transpile as nested schema recursively]
     F --> G[Create Pydantic model using transpiled data for validation]
+
+classDef blackAndWhite fill:#000,stroke:#fff,color:#fff,rx:5px,ry:5px;
+class A,B,C,C1,C2,C3,C4,D,E,F,G blackAndWhite;
+linkStyle default stroke:#000,stroke-width:5px;
 ```
 
 Each of these steps will be described in more detail in the following sections.
