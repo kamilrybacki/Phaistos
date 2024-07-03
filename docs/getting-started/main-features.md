@@ -27,7 +27,8 @@ The diagram below illustrates the general workflow of the Phaistos transpiler:
 %%{
   init: {
     'themeVariables': {
-      'lineColor': '#000'
+      'lineColor': '#fff',
+      'textColor': '#fff'
     }
   }
 }%%
@@ -44,9 +45,9 @@ flowchart TD
     E --> F[For dict-type fields: transpile as nested schema recursively]
     F --> G[Create Pydantic model using transpiled data for validation]
 
-classDef blackAndWhite fill:#000,stroke:#fff,color:#fff,rx:5px,ry:5px;
+classDef blackAndWhite fill:none,stroke:#fff,stroke-width:2px,color:#fff,rx:5px,ry:5px,font-size:11px,font-family:Courier;
 class A,B,C,C1,C2,C3,C4,D,E,F,G blackAndWhite;
-linkStyle default stroke:#000,stroke-width:5px;
+linkStyle default stroke:#fff,stroke-width:3px;
 ```
 
 Each of these steps will be described in more detail in the following sections.
