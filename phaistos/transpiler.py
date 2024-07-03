@@ -33,6 +33,15 @@ class Transpiler:
     # pylint: disable=unnecessary-lambda-assignment
     @classmethod
     def validator(cls, prop: ParsedProperty) -> TranspiledPropertyValidator:
+        """
+        Method to transpile a property's validator into a Pydantic model field validator.
+
+        Args:
+            prop (ParsedProperty): A property with its respective data, from which the validator will be extracted.
+
+        Returns:
+            TranspiledPropertyValidator: A Pydantic model field validator.
+        """
         validator_key = phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
         rendered_function_source_code = phaistos.consts.VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
             validator_key,
@@ -62,6 +71,15 @@ class Transpiler:
 
     @classmethod
     def property(cls, prop: ParsedProperty) -> TranspiledProperty:
+        """
+        Method to transpile a property into a Pydantic model field.
+
+        Args:
+            prop (ParsedProperty): A property with its respective data.
+
+        Returns:
+            TranspiledProperty: A Pydantic model field.
+        """
         if 'properties' not in prop['data']:
             cls._adjust_if_collection_type_is_used(prop)
             return TranspiledProperty(
@@ -119,6 +137,15 @@ class Transpiler:
 
     @classmethod
     def properties(cls, properties: list[ParsedProperty]) -> TranspiledModelData:
+        """
+        Method to read a list of properties and transpile them into a Pydantic model fields.
+
+        Args:
+            properties (list[ParsedProperty]): A list of properties with their respective data.
+
+        Returns:
+            TranspiledModelData: A dictionary with the transpiled properties.
+        """
         transpiled_model_data: dict[str, TranspiledProperty] = {
             prop['name']: cls.property(prop)
             for prop in properties
@@ -143,6 +170,15 @@ class Transpiler:
 
     @classmethod
     def schema(cls, schema: SchemaInputFile) -> type[TranspiledSchema]:
+        """
+        Transpile a schema into a Pydantic model.
+
+        Args:
+            schema (SchemaInputFile): A parsed schema, stored as a dictionary with typed fields.
+
+        Returns:
+            type[TranspiledSchema]: A Pydantic model class with the schema's properties.
+        """
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
         class RootSchema(TranspiledSchema):

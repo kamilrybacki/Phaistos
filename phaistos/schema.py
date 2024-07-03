@@ -7,6 +7,9 @@ from phaistos.typings import TranspiledModelData, FieldValidationErrorInfo, Vali
 
 
 class TranspiledSchema(pydantic.BaseModel):
+    """
+    A Pydantic model that represents a transpiled schema.
+    """
     model_config = {
         'from_attributes': True,
         'populate_by_name': True,
@@ -28,6 +31,13 @@ class TranspiledSchema(pydantic.BaseModel):
 
 @dataclasses.dataclass(kw_only=True)
 class ValidationSchema:
+    """
+    A dataclass that represents a validation schema.
+
+    Attributes:
+        name (str): The name of the schema.
+        _model (type[TranspiledSchema]): The model of the schema, used for validation.
+    """
     name: str
     _model: type[TranspiledSchema]
 
