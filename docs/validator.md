@@ -48,7 +48,7 @@ result = validator.against_schema(
 
 Below is the signature of the `against_schema` method:
 
-###### `phaistos.validator.Validator.against_schema`
+`phaistos.validator.Validator.against_schema`
 
 ::: phaistos.validator.Validator.against_schema
 
@@ -56,7 +56,7 @@ Below is the signature of the `against_schema` method:
 
 After each validation, the `against_schema` method returns a `ValidationResult` object that contains the validation result.
 
-###### `phaistos.typings.ValidationResult`
+`phaistos.typings.ValidationResult`
 
 ::: phaistos.typings.ValidationResult
 
