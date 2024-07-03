@@ -1,7 +1,7 @@
 import os
 import setuptools  # type: ignore
 
-with open("README.md", "r", encoding="utf-8") as fh:
+with open(".github/assets/pypi_desc.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 if version := os.environ.get("RELEASE_VERSION"):
