@@ -6,6 +6,8 @@ concurrency:
 jobs:
   lint-python:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ github.event.ref }}
     steps:
       - uses: actions/checkout@v3
       - 

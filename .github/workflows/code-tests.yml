@@ -6,6 +6,8 @@ concurrency:
 jobs:
   integration:
     runs-on: ubuntu-latest
+    env:
+      RELEASE_VERSION: ${{ github.event.ref }}
     steps:
       -
         name: Checkout 🛎️
