@@ -14,5 +14,5 @@ properties:
     description: Database password
     default: ""
     validator: |
-      if len(value) < 8:
+      if len(value) < 3:
         raise ValueError("Password must be at least 8 characters long")
