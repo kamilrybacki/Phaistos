@@ -35,6 +35,8 @@ Each property is expressed with a 3-tuple, where the first element is the field 
 
 As for the validators, the compiled functions are stored as dictionaries of `TranspiledPropertyValidator` dictionaries:
 
+###### `phaistos.typings.TranspiledPropertyValidator`
+
 ::: phaistos.typings.TranspiledPropertyValidator
 
 ### So, how can I use it?
