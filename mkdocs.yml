@@ -15,11 +15,12 @@ theme:
 plugins:
   - mkdocstrings
 nav:
-  - Phaistos: index.md
+  - Welcome: index.md
   - Installation: installation.md
   - Getting Started:
     - Main Features: getting-started/main-features.md
     - Defining a schema: getting-started/schema.md
+    - Using the Validator: getting-started/validator.md
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
