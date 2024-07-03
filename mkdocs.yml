@@ -19,6 +19,7 @@ nav:
   - Main Features: main-features.md
   - Installation: installation.md
   - Defining a schema: schema.md
+  - Transpiling into snakespeak: transpiler.md
   - Using the Validator: validator.md
 markdown_extensions:
   - pymdownx.superfences:
