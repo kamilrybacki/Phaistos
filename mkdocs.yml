@@ -20,3 +20,9 @@ nav:
   - Getting Started:
     - Main Features: getting-started/main-features.md
     - Defining a schema: getting-started/schema.md
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
