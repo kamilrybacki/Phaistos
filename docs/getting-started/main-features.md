@@ -42,7 +42,8 @@ flowchart TD
     C -->|No| D[Skip custom code injection]
     C4 --> E[For list-type fields: add validation for each element type]
     D --> E
-    E --> F[For dict-type fields: transpile as nested schema recursively]
+    E --> F[For dict-type fields: transpile as nested schema]
+    F --> |Recursion|B
     F --> G[Create Pydantic model using transpiled data for validation]
 
 classDef blackAndWhite fill:none,stroke:#fff,stroke-width:2px,color:#fff,rx:5px,ry:5px,font-size:13px,font-family:Courier;
