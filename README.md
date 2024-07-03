@@ -32,6 +32,12 @@ The Phaistos name comes from the [Phaistos Disc](https://en.wikipedia.org/wiki/P
 
 In the show of unprecedented far-reaching, the resulting data models from Phaistos can be viewed as such "discs" containing malleable and abstract data validation dialects that can exist in a variety of forms and can be used to validate a variety of data payloads. Also - we used to burn data into disks 💽, so there's another angle to the name. 🤷‍♂️
 
+## Examples
+
+The directory `examples/` contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
+
+More information about the examples can be found in the [examples README](examples/README.md).
+
 ## Contributing
 
 Thank you for considering contributing to this project! We welcome contributions from everyone. By participating, you agree to abide by the following guidelines:
