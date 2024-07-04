@@ -95,6 +95,60 @@ There are modules which are considered critical and are blocked from being impor
 
 The list of blocked modules is as follows: `os`, `sys`, `importlib`, `pydoc`, `subprocess`, `pickle`, `shutil`, `tempfile`, `inspect`, `shlex`.
 
+### Constraints
+
+Phaisots allows you to define constraints for the data fields, in a similar way to how they are defined in Pydantic models. The constraints are defined as follows:
+
+```yaml
+<FIELD_NAME>:
+    type: <FIELD_TYPE>
+    description: <FIELD_DESCRIPTION>
+    constraints:
+        <CONSTRAINT_NAME>: <CONSTRAINT_VALUE>
+```
+
+The constraints are defined as key-value pairs, where the key is the name of the constraint and the value is the value of the constraint. These constraints are then injected into the Pydantic `FieldInfo` constructors for each transpiled field.
+
+To define multiple constraints for a field, you can define them as separate key-value pairs, as shown in the example below:
+
+```yaml
+<FIELD_NAME>:
+    type: <FIELD_TYPE>
+    description: <FIELD_DESCRIPTION>
+    constraints:
+        <CONSTRAINT_NAME>: <CONSTRAINT_VALUE>
+        <CONSTRAINT_NAME>: <CONSTRAINT_VALUE>
+```
+
+The constraints are then injected into the Pydantic model as follows:
+
+```python
+from pydantic import BaseModel, Field
+
+class <SCHEMA_NAME>(BaseModel):
+    <FIELD_NAME>: <FIELD_TYPE> = Field(..., **<CONSTRAINTS>)
+```
+
+To check the available constraints, refer to the [Pydantic documentation](https://docs.pydantic.dev/latest/concepts/fields/).
+
+### What if I want both?
+
+You can define both a `validator` and `constraints` for a field. The constraints will be injected into the Pydantic model as described above, and the `validator` code will be injected into the custom validator function.
+
+```yaml
+<FIELD_NAME>:
+    type: <FIELD_TYPE>
+    description: <FIELD_DESCRIPTION>
+    constraints:
+        <CONSTRAINT_NAME>: <CONSTRAINT_VALUE>
+    validator: |
+        <VALIDATOR_CODE>
+```
+
+### `default` field
+
+The `default` field is optional and allows you to define a default value for the data field. The default value will be used if the field is not present in the data being validated.
+
 ### Transpilation result
 
 To visualize to result of the transpilation, let's consider the following schema manifest:
