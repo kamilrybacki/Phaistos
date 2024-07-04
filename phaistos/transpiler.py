@@ -1,6 +1,7 @@
 # pylint: disable=protected-access, too-few-public-methods
 from __future__ import annotations
 import dataclasses
+import copy
 import logging
 import pydoc
 import re
@@ -82,31 +83,34 @@ class Transpiler:
             TranspiledProperty: A Pydantic model field.
         """
         if 'properties' not in prop['data']:
-            cls._adjust_if_collection_type_is_used(prop)
+            adjusted_data = cls._adjust_if_collection_type_is_used(prop)
             return TranspiledProperty(
                 type=pydoc.locate(  # type: ignore
                     path=str(
-                        prop['data'].get('type')
+                        adjusted_data['data'].get('type')
                     )
                 ),
-                default=prop['data'].get('default', ...),
-                validator=cls.validator(prop),
+                default=adjusted_data['data'].get('default', ...),
+                validator=cls.validator(adjusted_data),
+                constraints=adjusted_data['data'].get('constraints', {})
             )
         return cls._transpile_nested_property(prop)
 
     @classmethod
-    def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> None:
+    def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> ParsedProperty:
+        adjusted = copy.deepcopy(prop)
         if match := re.match(
             phaistos.consts.COLLECTION_TYPE_REGEX,
-            prop['data']['type']
+            adjusted['data']['type']
         ):
             cls._check_if_collection_type_is_allowed(match['collection'])
-            prop['data']['validator'] = prop['data'].get('validator', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
+            adjusted['data']['validator'] = adjusted['data'].get('validator', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
                 match['item'],
-                prop['name'],
+                adjusted['name'],
                 match['item']
             )
-            prop['data']['type'] = match['collection']
+            adjusted['data']['type'] = match['collection']
+        return adjusted
 
     @staticmethod
     def _check_if_collection_type_is_allowed(collection_type: str) -> None:
@@ -133,7 +137,8 @@ class Transpiler:
         return TranspiledProperty(
             type=compiled_nested_schema,
             default=...,
-            validator=cls.validator(prop)
+            validator=cls.validator(prop),
+            constraints={}
         )
 
     @classmethod
@@ -178,7 +183,7 @@ class Transpiler:
                     'default',
                     pydantic_core.PydanticUndefined
                 ),
-                **property_data.get('constraints', {})
+                **property_data['constraints']
             )
         )
 

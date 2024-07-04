@@ -65,9 +65,36 @@ MOCK_SCHEMA_PATCHES: list[
             'type': 'list[str]',
             'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
             'invalid': ([
-                ['tag1'],
+                ['t1'],
                 [None, None, None]
             ], [])
+        }
+    },
+    {
+        'numbers': {
+            'description': 'Numbers for the test',
+            'type': 'list[int]',
+            'constraints': {
+                'min_items': 2
+            },
+            'invalid': ([], [[0]])
+        },
+        'name': {
+            'description': 'Name of the test',
+            'type': 'str',
+            'constraints': {
+                'min_length': 2
+            },
+            'invalid': ([], ['a'])
+        },
+        'age': {
+            'description': 'Age of the test',
+            'type': 'int',
+            'constraints': {
+                'ge': 0,
+                'le': 100
+            },
+            'invalid': ([], [999])
         }
     },
     {

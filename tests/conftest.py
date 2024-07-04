@@ -18,7 +18,14 @@ def create_mock_schema_data(applied_properties: dict[str, phaistos.typings.RawSc
         if 'default' in property_data:
             data[property_name] = property_data['default']
         elif 'type' in property_data:
-            data[property_name] = pydoc.locate(property_data['type'])(consts.RANDOM_DATA)  # type: ignore
+            if 'list' in property_data['type']:
+                nested_type = property_data['type'].split('[')[1][:-1]
+                data[property_name] = [
+                    pydoc.locate(nested_type)(entry)  # type: ignore
+                    for entry in consts.RANDOM_DATA
+                ]
+            else:
+                data[property_name] = pydoc.locate(property_data['type'])(consts.RANDOM_DATA)  # type: ignore
         elif 'properties' in property_data:
             data[property_name] = create_mock_schema_data(property_data['properties'])
         else:

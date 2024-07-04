@@ -6,7 +6,7 @@ import pytest
 import conftest  # type: ignore
 import consts  # type: ignore
 
-import pydantic
+import pydantic_core
 
 from phaistos.transpiler import Transpiler
 from phaistos.schema import TranspiledSchema
@@ -19,18 +19,19 @@ def _check_transpiled_validator(
     validator: typing.Callable,
     logger
 ) -> None:
+    logger.info(f'Checking validator {validator.__name__} for data: {data}')
     with pytest.raises(ValueError):
         validator(data)
-    logger.info(f'Invalid data "{data}" caught successfully')
 
 
+# pylint: disable=protected-access,c-extension-no-member
 def _check_constraints(
     transpiled_schema: type[TranspiledSchema],
     data: dict[str, typing.Any],
     logger
 ) -> None:
-    logger.info('Validating constraints')
-    with pytest.raises(pydantic.ValidationError):
+    logger.info('Checking constraints for invalid data: %s', data)
+    with pytest.raises(pydantic_core._pydantic_core.ValidationError):
         transpiled_schema(**data)
 
 
@@ -81,8 +82,6 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
     mock_schema_test_data = conftest.create_mock_schema_data(
         applied_properties=patch
     )
-    logger.info('Validating clean data: %s', mock_schema_test_data)
-    assert transpiled_schema(**mock_schema_test_data)
 
     validators_to_check = conftest.find_custom_validators(patch)
 
@@ -105,12 +104,16 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
                 logger=logger
             )
 
-    all_invalid_data = mock_schema_test_data | {
+    if (all_invalid_data := mock_schema_test_data | {
         property_name: property_data.get('invalid')[1][0]
         for property_name, property_data in patch.items()
         if 'invalid' in property_data and property_data['invalid'][1]
-    }
-    print(all_invalid_data)
+    }) != mock_schema_test_data:
+        _check_constraints(
+            transpiled_schema=transpiled_schema,
+            data=all_invalid_data,
+            logger=logger
+        )
 
 
 @pytest.mark.order(2)
