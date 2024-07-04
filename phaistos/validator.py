@@ -5,7 +5,7 @@ import typing
 import yaml
 
 from phaistos.transpiler import Transpiler
-from phaistos.typings import ValidationResults
+from phaistos.typings import ValidationResults, SchemaInputFile
 from phaistos.schema import TranspiledSchema, ValidationSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
 from phaistos.exceptions import SchemaParsingException
@@ -80,6 +80,14 @@ class Validator:
             f'Available schemas: {", ".join(discovered_schemas.keys())}'
         )
         return discovered_schemas
+
+    def load_schema(self, schema: SchemaInputFile) -> None:
+        self._logger.info(f'Loading schema: {schema["name"]}')
+        schema_class = Transpiler.schema(schema)
+        self._schemas[schema_class.__name__] = ValidationSchema(
+            name=schema_class.__name__,
+            _model=schema_class
+        )
 
     def __discover_schemas(self, target_path: str) -> list[type[TranspiledSchema]]:
         self._logger.info(f'Discovering schemas in: {target_path}')

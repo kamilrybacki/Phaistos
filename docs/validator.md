@@ -1,6 +1,8 @@
 ## Utilizing transpiled schemas
 
-So, you have transpiled your schemas into Pydantic models. Now what? Well, you can use them to validate data against the defined schemas.
+So, you have transpiled your schemas into Pydantic models (found under the `PHAISTOS__SCHEMA_PATH` path).
+
+Now what? Well, you can use them to validate data against the defined schemas.
 
 Suppose we have a schema defined in a file named `person.yaml`:
 
