@@ -120,14 +120,18 @@ def run_example() -> None:
     database = JustPretendItsADatabase(config=EXAMPLE_DATABASE_CONFIGS['valid'])
     logging.info('Database instance created')
 
+    # Create a valid mockument instance
+    good_mockument = Mockument(**EXAMPLE_MOCKUMENTS['valid'])
+
     # Insert a valid mockument
-    database.insert('The Room', Mockument(**EXAMPLE_MOCKUMENTS['valid']))  # type: ignore
+    database.insert('The Room', good_mockument)  # type: ignore
     assert database.get('The Room') is not None
     logging.info('Valid mockument inserted')
 
     # Insert an invalid mockument - this will raise an exception (ValueError)
     try:
-        database.insert('Troll 2', Mockument(**EXAMPLE_MOCKUMENTS['invalid']))  # type: ignore
+        bad_mockument = Mockument(**EXAMPLE_MOCKUMENTS['invalid'])  # type: ignore
+        database.insert('Troll 2', bad_mockument)
     except ValueError as insert_failed:
         logging.error(f'Invalid mockument insertion failed: {str(insert_failed)}')
 

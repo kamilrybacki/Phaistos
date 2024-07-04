@@ -42,9 +42,9 @@ class Validator:
 
     def against_schema(self, data: dict, schema: str) -> ValidationResults:
         self._logger.info(f'Validating data against schema: {schema}')
-        return self.construct(schema).validate(data)
+        return self.get_model(schema).validate(data)
 
-    def construct(self, name: str) -> ValidationSchema:
+    def get_model(self, name: str) -> ValidationSchema:
         if name not in self._schemas:
             self._schemas[name] = ValidationSchema(
                 name=name,

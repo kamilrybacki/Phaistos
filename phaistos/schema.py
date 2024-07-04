@@ -42,6 +42,16 @@ class ValidationSchema:
     _model: type[TranspiledSchema]
 
     def validate(self, data: dict) -> ValidationResults:
+        """
+        Validate the given data against the schema. Do not return
+        the validated data, only the validation results.
+
+        Args:
+            data (dict): The data to validate.
+
+        Returns:
+            ValidationResults: The validation results, including the schema, errors, and data.
+        """
         try:
             self._model(**data)
             return ValidationResults(
@@ -63,3 +73,6 @@ class ValidationSchema:
                 ],
                 data=data
             )
+
+    def __call__(self, *args: dataclasses.Any, **kwds: dataclasses.Any) -> TranspiledSchema:
+        return self._model(*args, **kwds)
