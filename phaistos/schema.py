@@ -1,5 +1,6 @@
 from __future__ import annotations
 import dataclasses
+import typing
 
 import pydantic
 
@@ -74,5 +75,5 @@ class ValidationSchema:
                 data=data
             )
 
-    def __call__(self, *args: dataclasses.Any, **kwds: dataclasses.Any) -> TranspiledSchema:
+    def __call__(self, *args: typing.Any, **kwds: typing.Any) -> TranspiledSchema:
         return self._model(*args, **kwds)
