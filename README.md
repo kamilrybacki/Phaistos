@@ -38,6 +38,9 @@ The [`examples` branch] contains scripts and schemas that demonstrate how to use
 
 More information about the examples can be found in the [examples README](examples/README.md).
 
+Want more? You can check out tests in the `tests` directory for more examples of how to use Phaistos, however, expect some Python-fu and a lot of test-related code
+e.g. monkey-patching, fixtures, etc. Viewer discretion is advised.
+
 ## Contributing
 
 Thank you for considering contributing to this project! We welcome contributions from everyone. By participating, you agree to abide by the following guidelines:
