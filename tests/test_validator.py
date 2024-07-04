@@ -113,3 +113,39 @@ def test_schema_validation_workflow(faulty_config_file, valid_config_file, logge
             _run_data_validation(schema, validator, logger)
 
     os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
+
+
+def test_manual_schema_loading() -> None:
+    with conftest.schema_discovery(state=False):
+        validator = phaistos.Validator.start()
+
+        schema: SchemaInputFile = {
+            "version": "v1",
+            "description": "A schema for a person",
+            "name": "Person",
+            "properties": {
+                "age": {
+                    "type": "int",
+                    "description": "The age of the person",
+                    "validator": "if value < 18: raise ValueError('The age must be at least 18')"
+                }
+            }
+        }
+
+        # Load the schema
+        validator.load_schema(schema)
+
+        # Validate data against the schema
+        data = {
+            "name": "John Doe",
+            "age": 30,
+            "email": "xxx@gmail.com"
+        }
+
+        schema_name = "Person"
+
+        # Validate the data against the schema
+        assert validator.against_schema(
+            data=data,
+            schema=schema_name
+        ).valid

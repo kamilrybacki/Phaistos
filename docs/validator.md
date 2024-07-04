@@ -44,7 +44,7 @@ schema_name = "person"
 # Validate the data against the schema
 result = validator.against_schema(
     data=data,
-    schema_name=schema_name
+    schema=schema_name
 )
 ```
 

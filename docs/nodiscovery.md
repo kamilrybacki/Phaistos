@@ -29,7 +29,7 @@ schema = {
     "version": "v1",
     "description": "A schema for a person",
     "name": "Person",
-    "properties" {
+    "properties": {
         "name": {
             "type": "str",
             "description": "The name of the person"
@@ -37,10 +37,7 @@ schema = {
         "age": {
             "type": "int",
             "description": "The age of the person",
-            "validators": """
-                if value < 18:
-                    raise ValueError("The age must be at least 18")
-            """
+            "validator": 'if value < 18: raise ValueError("The age must be at least 18")'
         },
         "email": {
             "type": "str",
@@ -64,6 +61,18 @@ schema_name = "Person"
 # Validate the data against the schema
 result = validator.against_schema(
     data=data,
-    schema_name=schema_name
+    schema=schema_name
 )
 ```
+
+In this example, we first initialize the `Validator` class and then load a schema
+manually. The schema is a dictionary that describes the schema manifest and
+adheres to the `SchemaInputFile` structure:
+
+**phaistos.typings.SchemaInputFile**:
+
+::: phaistos.typings.SchemaInputFile
+
+The `load_schema` method is used to load the schema into the `Validator` object,
+which can be then used as a target for `against_schema` method. The `schema`
+argument **must match** the `name` field in the schema manifest (here: `Person`).
