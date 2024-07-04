@@ -13,7 +13,7 @@ RANDOM_DATA = ''.join(str(random.randint(0, 9)) for _ in range(10))
 
 
 class MockRawSchemaProperty(phaistos.typings.RawSchemaProperty):
-    invalid: typing.NotRequired[list[typing.Any]]
+    invalid: typing.NotRequired[tuple[list, list]]
     properties: typing.NotRequired[dict[str, MockRawSchemaProperty]]  # type: ignore
 
 
@@ -37,37 +37,53 @@ MOCK_SCHEMA_PATCHES: list[
         'is_active': {
             'description': 'Is the test active',
             'type': 'bool',
-        },
-        'tags': {
-            'description': 'Tags for the test',
-            'type': 'list[str]',
-            'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
-            'invalid': [
-                ['tag1'],
-                [None, None, None]
-            ]
-        },
+        }
     },
     {
         'income': {
             'description': 'Income of the test',
             'type': 'float',
             'validator': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
-            'invalid': [
+            'invalid': ([
                 999.99,
                 0.0,
                 None
-            ]
+            ], [])
         },
         'label': {
             'description': 'Name of the test',
             'type': 'str',
             'validator': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
-            'invalid': [
+            'invalid': ([
                 'na$!',
                 '',
                 None
-            ]
+            ], [])
+        },
+        'tags': {
+            'description': 'Tags for the test',
+            'type': 'list[str]',
+            'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
+            'invalid': ([
+                ['tag1'],
+                [None, None, None]
+            ], [])
+        }
+    },
+    {
+        'rank': {
+            'description': 'Rank of the test',
+            'type': 'int',
+            'constraints': {
+                'le': 10
+            },
+            'validator': "if value < 1:  raise ValueError('Rank must be between 1 and 10')",
+            'invalid': ([
+                0,
+                None
+            ], [
+                11
+            ])
         },
     },
     {
@@ -81,16 +97,15 @@ MOCK_SCHEMA_PATCHES: list[
                 'age_name': {
                     'description': 'Age of the nested test',
                     'type': 'int',
-                    'validator': "if value < 18: raise ValueError('Age must be more than 18')",
-                    'invalid': [
-                        17,
+                    'invalid': ([], [
                         0,
+                        -1,
                         None
-                    ]
+                    ])
                 },
             }
         }
-    }
+    },
 ]
 
 SCHEMA_DISCOVERY_FAIL_CASES: list[

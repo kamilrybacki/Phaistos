@@ -6,6 +6,8 @@ import pytest
 import conftest  # type: ignore
 import consts  # type: ignore
 
+import pydantic
+
 from phaistos.transpiler import Transpiler
 from phaistos.schema import TranspiledSchema
 from phaistos.consts import BLOCKED_MODULES
@@ -20,6 +22,16 @@ def _check_transpiled_validator(
     with pytest.raises(ValueError):
         validator(data)
     logger.info(f'Invalid data "{data}" caught successfully')
+
+
+def _check_constraints(
+    transpiled_schema: type[TranspiledSchema],
+    data: dict[str, typing.Any],
+    logger
+) -> None:
+    logger.info('Validating constraints')
+    with pytest.raises(pydantic.ValidationError):
+        transpiled_schema(**data)
 
 
 def _extract_transpiled_validators(
@@ -86,12 +98,19 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
     )
 
     for validator in validator_check_results.values():
-        for sample in validator[1]:
+        for sample in validator[1][0]:
             _check_transpiled_validator(
                 data=sample,
                 validator=validator[0],  # type: ignore
                 logger=logger
             )
+
+    all_invalid_data = mock_schema_test_data | {
+        property_name: property_data.get('invalid')[1][0]
+        for property_name, property_data in patch.items()
+        if 'invalid' in property_data and property_data['invalid'][1]
+    }
+    print(all_invalid_data)
 
 
 @pytest.mark.order(2)

@@ -33,7 +33,7 @@ def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
             property_data['type'],
             phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % property_name,
             property_data['invalid']
-        )] if 'validators' in property_data else []
+        )] if 'validator' in property_data else []
         found_validators.extend(
             find_custom_validators(property_data.get('properties', {}))
         )

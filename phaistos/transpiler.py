@@ -8,6 +8,7 @@ import typing
 import types
 
 import pydantic
+import pydantic_core
 
 import phaistos.consts
 import phaistos.exceptions
@@ -151,7 +152,7 @@ class Transpiler:
             for prop in properties
         }
         properties_annotations: typing.Dict[str, typing.Any] = {
-            property_name: (property_data['type'], property_data['default'])
+            property_name: cls._construct_field_annotation(property_data)
             for property_name, property_data in transpiled_model_data.items()
             if not isinstance(property_data, type)
         } | {
@@ -166,6 +167,19 @@ class Transpiler:
                 if not isinstance(property_data, type)
             ],
             properties=properties_annotations
+        )
+
+    @staticmethod
+    def _construct_field_annotation(property_data: TranspiledProperty) -> tuple[type, pydantic.Field]:
+        return (
+            property_data['type'],
+            pydantic.fields.FieldInfo(
+                default=property_data.get(
+                    'default',
+                    pydantic_core.PydanticUndefined
+                ),
+                **property_data.get('constraints', {})
+            )
         )
 
     @classmethod

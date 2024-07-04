@@ -21,6 +21,7 @@ class RawSchemaProperty(typing.TypedDict):
     default: typing.NotRequired[typing.Any]
     validator: typing.NotRequired[str]
     properties: typing.NotRequired[dict[str, RawSchemaProperty]]
+    constraints: typing.NotRequired[dict[str, typing.Any]]
 
 
 class SchemaInputFile(typing.TypedDict):
@@ -77,6 +78,7 @@ class TranspiledProperty(typing.TypedDict):
     type: type
     default: typing.Any
     validator: TranspiledPropertyValidator
+    constraints: dict[str, typing.Any]
 
 
 class TranspiledModelData(typing.TypedDict):
