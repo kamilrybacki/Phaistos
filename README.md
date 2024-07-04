@@ -24,17 +24,17 @@ The main features of Phaistos are:
 * Define data models using YAML manifests for easy readability, versioning and maintainability 🗄️
 * Add custom validators to data fields that are automatically injected into Pydantic models 💉
 
-**For installation and usage instructions, please refer to the [documentation](https://phaistos.readthedocs.io/en/latest/).**
+**For installation and usage instructions, please refer to the [documentation].**
 
 ### Why Phaistos? (as in - why the name?)
 
-The Phaistos name comes from the [Phaistos Disc](https://en.wikipedia.org/wiki/Phaistos_Disc), a disk of fired clay from the Minoan palace of Phaistos on the island of Crete, possibly dating to the middle or late Minoan Bronze Age (2nd millennium BC). These discs contain a series of symbols that are still undeciphered to this day.
+The Phaistos name comes from the [Phaistos Disc], a disk of fired clay from the Minoan palace of Phaistos on the island of Crete, possibly dating to the middle or late Minoan Bronze Age (2nd millennium BC). These discs contain a series of symbols that are still undeciphered to this day.
 
 In the show of unprecedented far-reaching, the resulting data models from Phaistos can be viewed as such "discs" containing malleable and abstract data validation dialects that can exist in a variety of forms and can be used to validate a variety of data payloads. Also - we used to burn data into disks 💽, so there's another angle to the name. 🤷‍♂️
 
 ## Examples
 
-The directory `examples/` contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
+The [`examples` branch] contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
 
 More information about the examples can be found in the [examples README](examples/README.md).
 
@@ -71,8 +71,13 @@ Thank you for considering contributing to this project! We welcome contributions
 
 ### Issues and Bug Reports
 
-If you encounter any issues or bugs, please [open an issue](https://github.com/your-repository/issues) on GitHub. Be sure to include detailed information about the problem and how to reproduce it.
+If you encounter any issues or bugs, please [open an issue] on GitHub. Be sure to include detailed information about the problem and how to reproduce it.
 
 ## License
 
 This project is licensed under the GNU General Public License Version 3 (GPLv3). See the [LICENSE](LICENSE) file for the full text.
+
+[documentation]: https://phaistos.readthedocs.io/en/latest/
+[Phaistos Disc]: https://en.wikipedia.org/wiki/Phaistos_Disc
+[`examples` branch]: https://github.com/kamilrybacki/Phaistos/tree/examples
+[open an issue]: https://github.com/your-repository/issues
