@@ -37,7 +37,7 @@ In the show of unprecedented far-reaching, the resulting data models from Phaist
 
 The [`examples` branch] contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
 
-More information about the examples can be found in the [examples README](examples/README.md).
+More information about the examples can be found in the [examples README].
 
 Want more? You can check out tests in the `tests` directory for more examples of how to use Phaistos, however, expect some Python-fu and a lot of test-related code
 e.g. monkey-patching, fixtures, etc. Viewer discretion is advised.
@@ -83,5 +83,6 @@ This project is licensed under the GNU General Public License Version 3 (GPLv3).
 
 [documentation]: https://phaistos.readthedocs.io/en/latest/
 [Phaistos Disc]: https://en.wikipedia.org/wiki/Phaistos_Disc
+[examples README]: https://github.com/kamilrybacki/Phaistos/blob/examples/README.md
 [`examples` branch]: https://github.com/kamilrybacki/Phaistos/tree/examples
 [open an issue]: https://github.com/your-repository/issues
