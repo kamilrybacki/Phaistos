@@ -73,9 +73,9 @@ Below is the signature of the `against_schema` method:
 
 After each validation, the `against_schema` method returns a `ValidationResult` object that contains the validation result.
 
-`phaistos.typings.ValidationResult`
+`phaistos.typings.ValidationResults`
 
-::: phaistos.typings.ValidationResult
+::: phaistos.typings.ValidationResults
 
 You can access these attributes to get more information about the validation result:
 

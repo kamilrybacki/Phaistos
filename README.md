@@ -10,6 +10,7 @@ Transcribing schemas from YAML-infused tablets to magical Pydantic validation mo
 
 ![Linting Status](https://github.com/kamilrybacki/Phaistos/actions/workflows/lint-code.yml/badge.svg)
 ![Testing Status](https://github.com/kamilrybacki/Phaistos/actions/workflows/code-tests.yml/badge.svg)
+![Documentation Status](https://readthedocs.org/projects/phaistos/badge/?version=latest)
 
 ## Main Features
 
