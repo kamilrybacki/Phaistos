@@ -69,9 +69,13 @@ In this example, we first initialize the `Validator` class and then load a schem
 manually. The schema is a dictionary that describes the schema manifest and
 adheres to the `SchemaInputFile` structure:
 
-**phaistos.typings.SchemaInputFile**:
+**phaistos.typings.SchemaInputFile**
 
 ::: phaistos.typings.SchemaInputFile
+
+**phaistos.typings.RawSchemaProperty**
+
+::: phaistos.typings.RawSchemaProperty
 
 The `load_schema` method is used to load the schema into the `Validator` object,
 which can be then used as a target for `against_schema` method. The `schema`
