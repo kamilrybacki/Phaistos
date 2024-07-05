@@ -18,10 +18,12 @@ nav:
   - Welcome: index.md
   - Main Features: main-features.md
   - Installation: installation.md
-  - Defining a schema: schema.md
-  - Transpiling into snakespeak: transpiler.md
-  - Using the Validator: validator.md
-  - Skipping the autodiscovery: noauto.md
+  - Transpiling schemas:
+    - Defining a Schema: schema.md
+    - Using the Transpiler: transpiler.md
+  - Validating data:
+    - Using the Validator: validator.md
+    - Skipping the autodiscovery: noauto.md
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
