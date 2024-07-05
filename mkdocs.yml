@@ -21,7 +21,7 @@ nav:
   - Defining a schema: schema.md
   - Transpiling into snakespeak: transpiler.md
   - Using the Validator: validator.md
-  - Skipping the autodiscovery: skippingautodiscovery.md
+  - Skipping the autodiscovery: noauto.md
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:
