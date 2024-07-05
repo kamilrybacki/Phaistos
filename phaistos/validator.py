@@ -81,13 +81,14 @@ class Validator:
         )
         return discovered_schemas
 
-    def load_schema(self, schema: SchemaInputFile) -> None:
+    def load_schema(self, schema: SchemaInputFile) -> str:
         self._logger.info(f'Loading schema: {schema["name"]}')
         schema_class = Transpiler.schema(schema)
         self._schemas[schema_class.__name__] = ValidationSchema(
             name=schema_class.__name__,
             _model=schema_class
         )
+        return schema_class.__name__
 
     def __discover_schemas(self, target_path: str) -> list[type[TranspiledSchema]]:
         self._logger.info(f'Discovering schemas in: {target_path}')

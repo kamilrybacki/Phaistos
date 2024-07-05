@@ -46,8 +46,9 @@ schema = {
     }
 }
 
-# Load the schema
-validator.load_schema(schema)
+# Load the schema - this will return the name of the schema
+# that can be used in the against_schema method
+schema_name = validator.load_schema(schema)
 
 # Validate data against the schema
 data = {
@@ -55,8 +56,6 @@ data = {
     "age": 30,
     "email": "xxx@gmail.com"
 }
-
-schema_name = "Person"
 
 # Validate the data against the schema
 result = validator.against_schema(
