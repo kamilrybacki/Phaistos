@@ -175,7 +175,7 @@ class Transpiler:
         )
 
     @staticmethod
-    def _construct_field_annotation(property_data: TranspiledProperty) -> tuple[type, pydantic.Field]:
+    def _construct_field_annotation(property_data: TranspiledProperty) -> tuple[type, pydantic.fields.FieldInfo]:
         return (
             property_data['type'],
             pydantic.fields.FieldInfo(
