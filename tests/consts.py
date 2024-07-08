@@ -43,7 +43,10 @@ MOCK_SCHEMA_PATCHES: list[
         'income': {
             'description': 'Income of the test',
             'type': 'float',
-            'validator': "if value < 1000.0: raise ValueError('Income must be more than 1000.0')",
+            'validator': {
+                "mode": "after",
+                "source": "if value < 1000.0: raise ValueError('Income must be more than 1000.0')"
+            },
             'invalid': ([
                 999.99,
                 0.0,
@@ -53,7 +56,10 @@ MOCK_SCHEMA_PATCHES: list[
         'label': {
             'description': 'Name of the test',
             'type': 'str',
-            'validator': "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')",
+            'validator': {
+                "mode": "after",
+                "source": "import string\nif set(value).difference(string.ascii_letters+string.digits): raise ValueError('Name contains special characters')"
+            },
             'invalid': ([
                 'na$!',
                 '',
@@ -63,7 +69,10 @@ MOCK_SCHEMA_PATCHES: list[
         'tags': {
             'description': 'Tags for the test',
             'type': 'list[str]',
-            'validator': "if len(value) < 2: raise ValueError('Tags must have at least 2 items')",
+            'validator': {
+                "mode": "after",
+                "source": "if len(value) < 2: raise ValueError('Tags must have at least 2 items')"
+            },
             'invalid': ([
                 ['t1'],
                 [None, None, None]
@@ -104,7 +113,10 @@ MOCK_SCHEMA_PATCHES: list[
             'constraints': {
                 'le': 10
             },
-            'validator': "if value < 1:  raise ValueError('Rank must be between 1 and 10')",
+            'validator': {
+                "mode": "after",
+                "source": "if value < 1:  raise ValueError('Rank must be between 1 and 10')"
+            },
             'invalid': ([
                 0,
                 None

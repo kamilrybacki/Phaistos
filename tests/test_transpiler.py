@@ -85,7 +85,7 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
 
     validators_to_check = conftest.find_custom_validators(patch)
 
-    logger.info('Checking if validators are present: %s', [
+    logger.info('Are validators are present?: %s', [
         validator_to_check[1]
         for validator_to_check in validators_to_check
     ])
@@ -144,7 +144,10 @@ def test_module_shadowing(blocked_module, mock_config_file_base, logger) -> None
                     'text': {
                         'description': 'Text to be displayed',
                         'type': 'str',
-                        'validator': f'if {blocked_module}.LOCK: {blocked_module}.some_attribute'
+                        'validator': {
+                            "source": f'if {blocked_module}.LOCK: {blocked_module}.some_attribute',
+                            "mode": "after"
+                        }
                     }
                 }
             }
@@ -172,7 +175,10 @@ def test_possible_exploits(exploit: dict[str, str], mock_config_file_base) -> No
                     'whatever': {
                         'description': 'We care only about the validator',
                         'type': 'int',
-                        'validator': exploit['code']
+                        'validator': {
+                            "mode": "after",
+                            "source": exploit['code']
+                        }
                     }
                 }
             }

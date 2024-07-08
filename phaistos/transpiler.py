@@ -19,6 +19,7 @@ from phaistos.typings import (
     TranspiledProperty,
     TranspiledModelData,
     TranspiledValidator,
+    RawValidator
 )
 from phaistos.schema import TranspiledSchema
 
@@ -34,7 +35,7 @@ class Transpiler:
 
     # pylint: disable=unnecessary-lambda-assignment
     @classmethod
-    def validator(cls, prop: ParsedProperty) -> TranspiledValidator:
+    def validator(cls, prop: ParsedProperty) -> TranspiledValidator | None:
         """
         Method to transpile a property's validator into a Pydantic model field validator.
 
@@ -44,63 +45,70 @@ class Transpiler:
         Returns:
             TranspiledPropertyValidator: A Pydantic model field validator.
         """
-        if 'type' in prop['data']:
+        if 'validator' in prop['data']:
+            if 'type' not in prop['data']:
+                cls._logger.info('Compiling model validator')
+                return cls._construct_model_validator(prop)
+            cls._logger.info(f'Compiling field validator for {prop["name"]}')
             return cls._construct_field_validator(prop)
-        return cls._construct_model_validator(prop)
+        return None
 
     @classmethod
     def _construct_field_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
         validator_key = phaistos.consts.FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
-        rendered_function_source_code = phaistos.consts.FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
-            validator_key,
-            prop['data'].get('validator', '').replace(
-                '\n',
-                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
-            )
-        )
         validator_function = cls._compile_validator_function(
-            validator_key,
-            rendered_function_source_code
+            name=validator_key,
+            source=prop['data']['validator']['source'],
+            kind='field',
+            decorator='@classmethod'
         )
         return TranspiledValidator(
             field=prop['name'],
             name=validator_key,
             method=pydantic.field_validator(
                 prop['name'],
-                mode='after',
+                mode=prop['data']['validator']['mode'],
                 check_fields=True,
             )(validator_function)
         )
 
     @classmethod
-    def _compile_validator_function(cls, name: str, source: str) -> types.FunctionType:
+    def _compile_validator_function(cls, name: str, source: str, kind: str, decorator: str = '', extra_arguments: str = '') -> types.FunctionType:
+        template = phaistos.consts.FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE if kind == 'field' else phaistos.consts.MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE
+        rendered_function_source_code = template % {
+            'decorator': decorator,
+            'name': name,
+            'first_argument': 'cls' if decorator == '@classmethod' else 'self',
+            'extra_arguments': extra_arguments,
+            'source': source.replace(
+                '\n',
+                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
+            )
+        }
         temporary_module = types.ModuleType('temporary_module')
         temporary_module.__dict__.update(
             phaistos.consts.ISOLATION_FROM_UNWANTED_LIBRARIES
         )
         exec(  # pylint: disable=exec-used
-            source,
+            rendered_function_source_code,
             temporary_module.__dict__
         )
         return getattr(temporary_module, name)
 
     @classmethod
     def _construct_model_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
-        rendered_function_source_code = phaistos.consts.MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
-            prop['data'].get('validator', '').replace(
-                '\n',
-                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
-            )
-        )
         validator_function = cls._compile_validator_function(
-            phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
-            rendered_function_source_code
+            name=phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
+            source=prop['data']['validator']['source'],
+            kind='model',
+            decorator='@classmethod' if prop['data']['validator']['mode'] == 'before' else '',
+            extra_arguments='data: dict[str, typing.Any], '
         )
         return TranspiledValidator(
             field='__root__',
             name=phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
             method=pydantic.model_validator(
-                mode='after',
+                mode=prop['data']['validator']['mode'],
             )(validator_function)
         )
 
@@ -132,17 +140,26 @@ class Transpiler:
     @classmethod
     def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> ParsedProperty:
         adjusted = copy.deepcopy(prop)
+        validator_data = adjusted['data'].get('validator', RawValidator({
+            'source': '',
+            'mode': 'after'
+        }))
         if match := re.match(
             phaistos.consts.COLLECTION_TYPE_REGEX,
             adjusted['data']['type']
         ):
             cls._check_if_collection_type_is_allowed(match['collection'])
-            adjusted['data']['validator'] = adjusted['data'].get('validator', '') + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
-                match['item'],
-                adjusted['name'],
-                match['item']
+            adjusted['data']['validator'] = RawValidator(
+                source=validator_data['source'] + phaistos.consts.COLLECTION_VALIDATOR_TEMPLATE % (
+                    match['item'],
+                    adjusted['name'],
+                    match['item']
+                ),
+                mode=validator_data['mode']
             )
             adjusted['data']['type'] = match['collection']
+        else:
+            adjusted['data']['validator'] = validator_data
         return adjusted
 
     @staticmethod
@@ -199,10 +216,11 @@ class Transpiler:
             if isinstance(property_data, type)
         }
         return TranspiledModelData(
-            validator=[
-                property_data['validator']
+            validators=[
+                validator
                 for property_data in transpiled_model_data.values()
                 if not isinstance(property_data, type)
+                if (validator := property_data.get('validator')) is not None
             ],
             properties=properties_annotations
         )
@@ -246,6 +264,27 @@ class Transpiler:
         ])
 
         transpilation['context'] = schema.get('context', {})  # type: ignore
+
+        if 'validator' in schema:
+            cls._logger.info('Compiling global model validator')
+            global_model_validator_function = cls._compile_validator_function(
+                f'validate_{schema['name'].lower()}',
+                schema['validator']['source'],
+                kind='model'
+            )
+            transpiled_global_validator = TranspiledValidator(
+                field='__root__',
+                name=phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
+                method=pydantic.model_validator(
+                    mode=schema['validator']['mode'],
+                )(global_model_validator_function)
+            )
+            if 'validator' in transpilation:
+                transpilation['validators'].append(
+                    transpiled_global_validator
+                )
+            else:
+                transpilation['validators'] = [transpiled_global_validator]
 
         transpiled_property_names = ', '.join([
             key

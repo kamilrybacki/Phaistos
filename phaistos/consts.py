@@ -8,20 +8,22 @@ DEFAULT_INDENTATION = 2 * ' '
 
 FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
 FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
-@classmethod
-def %s(cls, value, info: pydantic.FieldValidationInfo | None = None):
+%(decorator)s
+def %(name)s(%(first_argument)s, value, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
 {DEFAULT_INDENTATION}if not value or value is None:
 {DEFAULT_INDENTATION}{DEFAULT_INDENTATION}raise ValueError('Value cannot be empty')
-{DEFAULT_INDENTATION}%s
+{DEFAULT_INDENTATION}%(source)s
 {DEFAULT_INDENTATION}return value
 """
 
 MODEL_VALIDATOR_FUNCTION_NAME = 'validate_model'
 MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
-@classmethod
-def {MODEL_VALIDATOR_FUNCTION_NAME}(self, data, info: pydantic.FieldValidationInfo | None = None):
-{DEFAULT_INDENTATION}%s
-{DEFAULT_INDENTATION}return self
+%(decorator)s
+def %(name)s(%(first_argument)s, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
+{DEFAULT_INDENTATION}for field in %(first_argument)s.__dict__:
+{DEFAULT_INDENTATION}{DEFAULT_INDENTATION}locals()[field] = getattr(%(first_argument)s, field)
+{DEFAULT_INDENTATION}%(source)s
+{DEFAULT_INDENTATION}return %(first_argument)s
 """
 
 ALLOWED_COLLECTION_TYPES = {'list', 'set'}

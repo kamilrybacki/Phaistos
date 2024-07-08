@@ -19,9 +19,14 @@ class RawSchemaProperty(typing.TypedDict):
     description: str
     type: typing.NotRequired[str]
     default: typing.NotRequired[typing.Any]
-    validator: typing.NotRequired[str]
+    validator: typing.NotRequired[RawValidator]
     properties: typing.NotRequired[dict[str, RawSchemaProperty]]
     constraints: typing.NotRequired[dict[str, typing.Any]]
+
+
+class RawValidator(typing.TypedDict):
+    mode: typing.Literal['before', 'after', 'wrap']
+    source: str
 
 
 class SchemaInputFile(typing.TypedDict):
@@ -40,6 +45,7 @@ class SchemaInputFile(typing.TypedDict):
     description: str
     properties: dict[str, RawSchemaProperty]
     context: typing.NotRequired[dict[str, typing.Any]]
+    validator: typing.NotRequired[RawValidator]
 
 
 class ParsedProperty(typing.TypedDict):
@@ -79,7 +85,7 @@ class TranspiledProperty(typing.TypedDict):
     """
     type: type
     default: typing.Any
-    validator: TranspiledValidator
+    validator: TranspiledValidator | None
     constraints: dict[str, typing.Any]
 
 
@@ -92,7 +98,7 @@ class TranspiledModelData(typing.TypedDict):
         properties (dict[str, typing.Any]): A dictionary of transpiled properties.
         context (dict[str, typing.Any]): A dictionary of the context of the model, used during validation.
     """
-    validator: list[TranspiledValidator]
+    validators: list[TranspiledValidator]
     properties: dict[str, typing.Any]
     context: typing.NotRequired[dict[str, typing.Any]]
 

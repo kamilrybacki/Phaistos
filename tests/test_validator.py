@@ -16,6 +16,16 @@ import phaistos.consts
 from phaistos.typings import SchemaInputFile
 
 
+MOCK_PERSON = {
+    'data': {
+        "name": "John Doe",
+        "age": 30,
+        "email": "xxx@gmail.com"
+    },
+    'schema': 'Person'
+}
+
+
 @pytest.mark.parametrize(
     'hot_patch, exception',
     consts.SCHEMA_DISCOVERY_FAIL_CASES,
@@ -83,6 +93,12 @@ def _run_data_validation(
     logger.info(f'Validation results:\n{results}')
 
     assert results.valid == schema['_valid']  # type: ignore
+    if not results.valid:
+        failed_fields = [
+            error.name
+            for error in results.errors
+        ]
+        assert failed_fields == schema['_expected_failures']  # type: ignore
     del validator
 
 
@@ -127,7 +143,10 @@ def test_manual_schema_loading() -> None:
                 "age": {
                     "type": "int",
                     "description": "The age of the person",
-                    "validator": "if value < 18: raise ValueError('The age must be at least 18')"
+                    "validator": {
+                        "mode": "after",
+                        "source": "if value < 18: raise ValueError('The age must be at least 18')"
+                    }
                 }
             }
         }
@@ -135,17 +154,35 @@ def test_manual_schema_loading() -> None:
         # Load the schema
         validator.load_schema(schema)
 
-        # Validate data against the schema
-        data = {
-            "name": "John Doe",
-            "age": 30,
-            "email": "xxx@gmail.com"
+        # Validate the data against the schema
+        assert validator.against_schema(**MOCK_PERSON).valid  # type: ignore
+
+
+def test_if_context_is_passed_to_schema() -> None:
+    with conftest.schema_discovery(state=False):
+        validator = phaistos.Validator.start()
+
+        schema: SchemaInputFile = {
+            "version": "v1",
+            "description": "A schema for a person",
+            "name": "Person",
+            "properties": {
+                "age": {
+                    "type": "int",
+                    "description": "The age of the person",
+                    "validator": {
+                        "mode": "after",
+                        "source": "if info.context.get('fail'): raise ValueError('I was destined for failure :(')"
+                    }
+                }
+            },
+            "context": {
+                "fail": True
+            }
         }
 
-        schema_name = "Person"
+        # Load the schema
+        validator.load_schema(schema)
 
-        # Validate the data against the schema
-        assert validator.against_schema(
-            data=data,
-            schema=schema_name
-        ).valid
+        # Validate data against the schema with doomed validator (it will always raise an error, because value in context is the main culprit)
+        assert not validator.against_schema(**MOCK_PERSON).valid  # type: ignore
