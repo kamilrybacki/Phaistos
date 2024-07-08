@@ -6,13 +6,22 @@ import phaistos.exceptions
 
 DEFAULT_INDENTATION = 2 * ' '
 
-VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
-VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
-def %s(cls, value):
+FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
+FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
+@classmethod
+def %s(cls, value, info: pydantic.FieldValidationInfo | None = None):
 {DEFAULT_INDENTATION}if not value or value is None:
 {DEFAULT_INDENTATION}{DEFAULT_INDENTATION}raise ValueError('Value cannot be empty')
 {DEFAULT_INDENTATION}%s
 {DEFAULT_INDENTATION}return value
+"""
+
+MODEL_VALIDATOR_FUNCTION_NAME = 'validate_model'
+MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
+@classmethod
+def {MODEL_VALIDATOR_FUNCTION_NAME}(self, data, info: pydantic.FieldValidationInfo | None = None):
+{DEFAULT_INDENTATION}%s
+{DEFAULT_INDENTATION}return self
 """
 
 ALLOWED_COLLECTION_TYPES = {'list', 'set'}

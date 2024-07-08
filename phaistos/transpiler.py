@@ -18,7 +18,7 @@ from phaistos.typings import (
     ParsedProperty,
     TranspiledProperty,
     TranspiledModelData,
-    TranspiledPropertyValidator,
+    TranspiledValidator,
 )
 from phaistos.schema import TranspiledSchema
 
@@ -34,7 +34,7 @@ class Transpiler:
 
     # pylint: disable=unnecessary-lambda-assignment
     @classmethod
-    def validator(cls, prop: ParsedProperty) -> TranspiledPropertyValidator:
+    def validator(cls, prop: ParsedProperty) -> TranspiledValidator:
         """
         Method to transpile a property's validator into a Pydantic model field validator.
 
@@ -44,30 +44,63 @@ class Transpiler:
         Returns:
             TranspiledPropertyValidator: A Pydantic model field validator.
         """
-        validator_key = phaistos.consts.VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
-        rendered_function_source_code = phaistos.consts.VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
+        if 'type' in prop['data']:
+            return cls._construct_field_validator(prop)
+        return cls._construct_model_validator(prop)
+
+    @classmethod
+    def _construct_field_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
+        validator_key = phaistos.consts.FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
+        rendered_function_source_code = phaistos.consts.FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
             validator_key,
             prop['data'].get('validator', '').replace(
                 '\n',
                 f'\n{phaistos.consts.DEFAULT_INDENTATION}'
             )
         )
-        temporary_module = types.ModuleType('temporary_module')
-        temporary_module.__dict__.update(
-            phaistos.consts.ISOLATION_FROM_UNWANTED_LIBRARIES
+        validator_function = cls._compile_validator_function(
+            validator_key,
+            rendered_function_source_code
         )
-        exec(  # pylint: disable=exec-used
-            rendered_function_source_code,
-            temporary_module.__dict__
-        )
-        validator_function = getattr(temporary_module, validator_key)
-        return TranspiledPropertyValidator(
+        return TranspiledValidator(
             field=prop['name'],
             name=validator_key,
             method=pydantic.field_validator(
                 prop['name'],
                 mode='after',
                 check_fields=True,
+            )(validator_function)
+        )
+
+    @classmethod
+    def _compile_validator_function(cls, name: str, source: str) -> types.FunctionType:
+        temporary_module = types.ModuleType('temporary_module')
+        temporary_module.__dict__.update(
+            phaistos.consts.ISOLATION_FROM_UNWANTED_LIBRARIES
+        )
+        exec(  # pylint: disable=exec-used
+            source,
+            temporary_module.__dict__
+        )
+        return getattr(temporary_module, name)
+
+    @classmethod
+    def _construct_model_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
+        rendered_function_source_code = phaistos.consts.MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE % (
+            prop['data'].get('validator', '').replace(
+                '\n',
+                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
+            )
+        )
+        validator_function = cls._compile_validator_function(
+            phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
+            rendered_function_source_code
+        )
+        return TranspiledValidator(
+            field='__root__',
+            name=phaistos.consts.MODEL_VALIDATOR_FUNCTION_NAME,
+            method=pydantic.model_validator(
+                mode='after',
             )(validator_function)
         )
 
@@ -211,6 +244,8 @@ class Transpiler:
             )
             for property_name, property_data in schema['properties'].items()
         ])
+
+        transpilation['context'] = schema.get('context', {})  # type: ignore
 
         transpiled_property_names = ', '.join([
             key

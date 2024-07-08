@@ -33,11 +33,13 @@ class SchemaInputFile(typing.TypedDict):
         name (str): The name of the schema.
         description (str): The description of the schema.
         properties (dict[str, RawSchemaProperty]): The properties of the schema.
+        context (dict[str, typing.Any]): The context of the schema, used during validation. (See: https://docs.pydantic.dev/2.0/usage/validators/#validation-context)
     """
     version: str
     name: str
     description: str
     properties: dict[str, RawSchemaProperty]
+    context: typing.NotRequired[dict[str, typing.Any]]
 
 
 class ParsedProperty(typing.TypedDict):
@@ -52,7 +54,7 @@ class ParsedProperty(typing.TypedDict):
     data: RawSchemaProperty
 
 
-class TranspiledPropertyValidator(typing.TypedDict):
+class TranspiledValidator(typing.TypedDict):
     """
     A dictionary that represents a transpiled property validator.
 
@@ -77,7 +79,7 @@ class TranspiledProperty(typing.TypedDict):
     """
     type: type
     default: typing.Any
-    validator: TranspiledPropertyValidator
+    validator: TranspiledValidator
     constraints: dict[str, typing.Any]
 
 
@@ -88,9 +90,11 @@ class TranspiledModelData(typing.TypedDict):
     Attributes:
         validator (list[TranspiledPropertyValidator]): A list of transpiled property validators.
         properties (dict[str, typing.Any]): A dictionary of transpiled properties.
+        context (dict[str, typing.Any]): A dictionary of the context of the model, used during validation.
     """
-    validator: list[TranspiledPropertyValidator]
+    validator: list[TranspiledValidator]
     properties: dict[str, typing.Any]
+    context: typing.NotRequired[dict[str, typing.Any]]
 
 
 @dataclasses.dataclass(kw_only=True)

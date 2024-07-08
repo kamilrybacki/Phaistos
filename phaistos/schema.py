@@ -11,11 +11,13 @@ class TranspiledSchema(pydantic.BaseModel):
     """
     A Pydantic model that represents a transpiled schema.
     """
+    _context: dict[str, typing.Any] = pydantic.PrivateAttr()
     model_config = {
         'from_attributes': True,
         'populate_by_name': True,
     }
 
+    # pylint: disable=protected-access
     @classmethod
     def compile(cls, name: str, model_data: TranspiledModelData) -> type[TranspiledSchema]:
         schema: type[TranspiledSchema] = pydantic.create_model(  # type: ignore
@@ -27,6 +29,7 @@ class TranspiledSchema(pydantic.BaseModel):
             },
             **model_data['properties']
         )
+        schema._context = model_data.get('context', {})  # type: ignore
         return schema
 
 
@@ -54,7 +57,10 @@ class ValidationSchema:
             ValidationResults: The validation results, including the schema, errors, and data.
         """
         try:
-            self._model(**data)
+            self._model.model_validate(
+                data,
+                context=self._model._context  # pylint: disable=protected-access
+            )
             return ValidationResults(
                 valid=True,
                 schema=self._model.model_json_schema(),
