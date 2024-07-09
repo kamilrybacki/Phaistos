@@ -42,7 +42,7 @@ data = {
 schema_name = "person"
 
 # Validate the data against the schema
-result = validator.against_schema(
+result = validator.validate(
     data=data,
     schema=schema_name
 )
@@ -63,15 +63,15 @@ from phaistos import Validator
 validator = Validator()
 ```
 
-Below is the signature of the `against_schema` method:
+Below is the signature of the `validate` method:
 
-`phaistos.validator.Validator.against_schema`
+`phaistos.validator.Validator.validate`
 
-::: phaistos.validator.Validator.against_schema
+::: phaistos.validator.Validator.validate
 
 ## Validation result
 
-After each validation, the `against_schema` method returns a `ValidationResult` object that contains the validation result.
+After each validation, the `validate` method returns a `ValidationResult` object that contains the validation result.
 
 `phaistos.typings.ValidationResults`
 

@@ -85,7 +85,7 @@ def _run_data_validation(
 
     logger.info(f'Validating data {data_from_schema} against schema: {schema["name"]}')
 
-    results = validator.against_schema(
+    results = validator.validate(
         data=data_from_schema,
         schema=schema['name']
     )
@@ -155,10 +155,10 @@ def test_manual_schema_loading() -> None:
         validator.load_schema(schema)
 
         # Validate the data against the schema
-        assert validator.against_schema(**MOCK_PERSON).valid  # type: ignore
+        assert validator.validate(**MOCK_PERSON).valid  # type: ignore
 
 
-def test_if_context_is_passed_to_schema() -> None:
+def test_if_context_is_passed_during_validation() -> None:
     with conftest.schema_discovery(state=False):
         validator = phaistos.Validator.start()
 
@@ -185,4 +185,4 @@ def test_if_context_is_passed_to_schema() -> None:
         validator.load_schema(schema)
 
         # Validate data against the schema with doomed validator (it will always raise an error, because value in context is the main culprit)
-        assert not validator.against_schema(**MOCK_PERSON).valid  # type: ignore
+        assert not validator.validate(**MOCK_PERSON).valid  # type: ignore

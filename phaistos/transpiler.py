@@ -46,12 +46,21 @@ class Transpiler:
             TranspiledPropertyValidator: A Pydantic model field validator.
         """
         if 'validator' in prop['data']:
+            cls._check_for_forrbidden_imports(prop['data']['validator']['source'])
             if 'type' not in prop['data']:
                 cls._logger.info('Compiling model validator')
                 return cls._construct_model_validator(prop)
             cls._logger.info(f'Compiling field validator for {prop["name"]}')
             return cls._construct_field_validator(prop)
         return None
+
+    @classmethod
+    def _check_for_forrbidden_imports(cls, source: str) -> None:
+        if any(
+            module in source
+            for module in phaistos.consts.BLOCKED_MODULES
+        ):
+            raise phaistos.exceptions.ForbiddenModuleUseInValidator()
 
     @classmethod
     def _construct_field_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
@@ -80,10 +89,7 @@ class Transpiler:
             'name': name,
             'first_argument': 'cls' if decorator == '@classmethod' else 'self',
             'extra_arguments': extra_arguments,
-            'source': source.replace(
-                '\n',
-                f'\n{phaistos.consts.DEFAULT_INDENTATION}'
-            )
+            'source': source.replace('\n', '\n  ')
         }
         temporary_module = types.ModuleType('temporary_module')
         temporary_module.__dict__.update(

@@ -2,8 +2,6 @@ from __future__ import annotations
 import dataclasses
 import typing
 
-from phaistos.consts import DEFAULT_INDENTATION
-
 
 class RawSchemaProperty(typing.TypedDict):
     """
@@ -138,7 +136,7 @@ class ValidationResults:
     def __str__(self) -> str:
         is_data_valid = 'Yes' if self.valid else 'No'
         errors_printout = '\nReasons:\n' + '\n'.join(
-            f'{DEFAULT_INDENTATION}{error}'
+            f'  {error}'
             for error in self.errors
         ) if self.errors else ""
         return f'Is data valid?: {is_data_valid}{errors_printout}'

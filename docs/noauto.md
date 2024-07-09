@@ -47,7 +47,7 @@ schema = {
 }
 
 # Load the schema - this will return the name of the schema
-# that can be used in the against_schema method
+# that can be used in the validate method
 schema_name = validator.load_schema(schema)
 
 # Validate data against the schema
@@ -58,7 +58,7 @@ data = {
 }
 
 # Validate the data against the schema
-result = validator.against_schema(
+result = validator.validate(
     data=data,
     schema=schema_name
 )
@@ -77,5 +77,5 @@ adheres to the `SchemaInputFile` structure:
 ::: phaistos.typings.RawSchemaProperty
 
 The `load_schema` method is used to load the schema into the `Validator` object,
-which can be then used as a target for `against_schema` method. The `schema`
+which can be then used as a target for `validate` method. The `schema`
 argument **must match** the `name` field in the schema manifest (here: `Person`).

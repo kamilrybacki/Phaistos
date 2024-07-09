@@ -3,6 +3,7 @@ import os
 import random
 import typing
 
+import phaistos.consts
 import phaistos.typings
 
 TESTS_ASSETS_PATH = os.path.join(
@@ -210,5 +211,19 @@ VULNERABILITIES_TO_TEST = [
     {
         'name': "Removal via shutil",
         'code': 'shutil.rmtree("/tmp", ignore_errors=False)'
-    }
+    },
+    *[
+        {
+            'name': f'Importing {module_name}',
+            'code': f'import {module_name}'
+        }
+        for module_name in phaistos.consts.BLOCKED_MODULES
+    ],
+    *[
+        {
+            'name': f'Accessing {module_name} attributes',
+            'code': f'{module_name}.LOCK'
+        }
+        for module_name in phaistos.consts.BLOCKED_MODULES
+    ]
 ]

@@ -4,38 +4,42 @@ import types
 
 import phaistos.exceptions
 
-DEFAULT_INDENTATION = 2 * ' '
+MODEL_FIELD_COPY_TEMPLATE = """
+  for field in %(first_argument)s.__dict__:
+    locals()[field] = getattr(%(first_argument)s, field)
+    globals()[field] = getattr(%(first_argument)s, field)
+"""
 
 FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
 FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
 %(decorator)s
 def %(name)s(%(first_argument)s, value, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
-{DEFAULT_INDENTATION}if not value or value is None:
-{DEFAULT_INDENTATION}{DEFAULT_INDENTATION}raise ValueError('Value cannot be empty')
-{DEFAULT_INDENTATION}%(source)s
-{DEFAULT_INDENTATION}return value
+{MODEL_FIELD_COPY_TEMPLATE}
+  if not value or value is None:
+    raise ValueError('Value cannot be empty')
+  %(source)s
+  return value
 """
 
 MODEL_VALIDATOR_FUNCTION_NAME = 'validate_model'
 MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
 %(decorator)s
 def %(name)s(%(first_argument)s, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
-{DEFAULT_INDENTATION}for field in %(first_argument)s.__dict__:
-{DEFAULT_INDENTATION}{DEFAULT_INDENTATION}locals()[field] = getattr(%(first_argument)s, field)
-{DEFAULT_INDENTATION}%(source)s
-{DEFAULT_INDENTATION}return %(first_argument)s
+{MODEL_FIELD_COPY_TEMPLATE}
+  %(source)s
+  return %(first_argument)s
 """
 
 ALLOWED_COLLECTION_TYPES = {'list', 'set'}
 
 COLLECTION_TYPE_REGEX = r'(?P<collection>\w+)\[(?P<item>\w+)\]'
 
-COLLECTION_VALIDATOR_TEMPLATE = f"""
+COLLECTION_VALIDATOR_TEMPLATE = """
 for item in value:
-{DEFAULT_INDENTATION}if not item:
-{DEFAULT_INDENTATION}{DEFAULT_INDENTATION}raise ValueError('Items in list cannot be empty')
-{DEFAULT_INDENTATION}if not isinstance(item, %s):
-{DEFAULT_INDENTATION}{DEFAULT_INDENTATION}raise ValueError(f"Items in %s must be of type %s")
+  if not item:
+    raise ValueError('Items in list cannot be empty')
+  if not isinstance(item, %s):
+    raise ValueError(f"Items in %s must be of type %s")
 """
 
 
