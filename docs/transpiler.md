@@ -31,11 +31,11 @@ and compiled validator functions, which are then used to validate the data.
 
 Each property is expressed with a 3-tuple, where the first element is the field name, the second is the field type, and the third is the field default value.
 
-As for the validators, the compiled functions are stored as dictionaries of `TranspiledPropertyValidator` dictionaries:
+As for the validators, the compiled functions are stored as dictionaries of `TranspiledValidator` type:
 
-`phaistos.typings.TranspiledPropertyValidator`
+`phaistos.typings.TranspiledValidator`
 
-::: phaistos.typings.TranspiledPropertyValidator
+::: phaistos.typings.TranspiledValidator
 
 ### So, how can I use it?
 
