@@ -52,10 +52,7 @@ class ValidationHandler:
 
     def _run_validators(self, data: dict, collected_errors: list[FieldValidationErrorInfo]) -> None:
         try:
-            self._model.model_validate(
-                data,
-                context=self._model._context  # pylint: disable=protected-access
-            )
+            self._model(**data)
         except pydantic.ValidationError as validation_error:
             collected_errors.extend([
                 FieldValidationErrorInfo(

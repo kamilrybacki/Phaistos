@@ -6,7 +6,6 @@ import logging
 import pydoc
 import re
 import typing
-import types
 
 import pydantic
 import pydantic_core
@@ -20,10 +19,11 @@ from phaistos.typings import (
     ParsedProperty,
     TranspiledProperty,
     TranspiledModelData,
-    TranspiledValidator,
+    CompiledValidator,
     RawValidator
 )
 from phaistos.schema import TranspiledSchema
+from phaistos.compiler import ValidationFunctionsCompiler
 
 logging.basicConfig(level=logging.INFO)
 
@@ -37,7 +37,7 @@ class Transpiler:
 
     # pylint: disable=unnecessary-lambda-assignment
     @classmethod
-    def validator(cls, prop: ParsedProperty) -> TranspiledValidator | None:
+    def validator(cls, prop: ParsedProperty) -> CompiledValidator | None:
         """
         Method to transpile a property's validator into a Pydantic model field validator.
 
@@ -54,76 +54,7 @@ class Transpiler:
                 'source': prop['data']['validator'],
                 'mode': 'after' if 'type' in prop['data'] else 'before'
             })
-        cls._check_for_forbidden_imports(prop['data']['validator']['source'])
-        if 'type' not in prop['data']:
-            cls._logger.info('Compiling model validator')
-            return cls._construct_model_validator(prop)
-        cls._logger.info(f'Compiling field validator for {prop["name"]}')
-        return cls._construct_field_validator(prop)
-
-    @classmethod
-    def _check_for_forbidden_imports(cls, source: str) -> None:
-        if any(
-            module in source
-            for module in phaistos.consts.BLOCKED_MODULES
-        ):
-            raise phaistos.exceptions.ForbiddenModuleUseInValidator()
-
-    @classmethod
-    def _construct_field_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
-        validator_key = phaistos.sources.FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE % prop['name']
-        validator_function = cls._compile_validator_function(
-            name=validator_key,
-            source=prop['data']['validator']['source'],
-            kind='field',
-            decorator='@classmethod'
-        )
-        return TranspiledValidator(
-            field=prop['name'],
-            name=validator_key,
-            method=pydantic.field_validator(
-                prop['name'],
-                mode=prop['data']['validator']['mode'],
-                check_fields=True,
-            )(validator_function)
-        )
-
-    @classmethod
-    def _compile_validator_function(cls, name: str, source: str, kind: str, decorator: str = '', extra_arguments: str = '') -> types.FunctionType:
-        template = phaistos.sources.FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE if kind == 'field' else phaistos.sources.MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE
-        rendered_function_source_code = template % {
-            'decorator': decorator,
-            'name': name,
-            'first_argument': 'cls' if decorator == '@classmethod' else 'self',
-            'extra_arguments': extra_arguments,
-            'source': source.replace('\n', '\n  ')
-        }
-        temporary_module = types.ModuleType('temporary_module')
-        temporary_module.__dict__.update(
-            phaistos.consts.ISOLATION_FROM_UNWANTED_LIBRARIES
-        )
-        exec(  # pylint: disable=exec-used
-            rendered_function_source_code,
-            temporary_module.__dict__
-        )
-        return getattr(temporary_module, name)
-
-    @classmethod
-    def _construct_model_validator(cls, prop: ParsedProperty) -> TranspiledValidator:
-        validator_function = cls._compile_validator_function(
-            name=phaistos.sources.MODEL_VALIDATOR_FUNCTION_NAME,
-            source=prop['data']['validator']['source'],
-            kind='model',
-            decorator='@classmethod' if prop['data']['validator']['mode'] == 'before' else '',
-            extra_arguments='data: dict[str, typing.Any], '
-        )
-        return TranspiledValidator(
-            field='__root__',
-            name=phaistos.sources.MODEL_VALIDATOR_FUNCTION_NAME,
-            method=pydantic.model_validator(
-                mode=prop['data']['validator']['mode'],
-            )(validator_function)
-        )
+        return ValidationFunctionsCompiler.compile(prop)
 
     @classmethod
     def property(cls, prop: ParsedProperty) -> TranspiledProperty:
@@ -148,7 +79,17 @@ class Transpiler:
                 validator=cls.validator(adjusted_data),
                 constraints=adjusted_data['data'].get('constraints', {})
             )
-        return cls._transpile_nested_property(prop)
+        return TranspiledProperty(
+            type=cls.schema({
+                'name': prop['name'],
+                'version': prop['data'].get('version', '...'),  # type: ignore
+                'description': prop['data'].get('description', ''),
+                'properties': prop['data']['properties'],
+            }),
+            default=...,
+            validator=cls.validator(prop),
+            constraints={}
+        )
 
     @classmethod
     def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> ParsedProperty:
@@ -179,30 +120,6 @@ class Transpiler:
     def _check_if_collection_type_is_allowed(collection_type: str) -> None:
         if collection_type not in phaistos.consts.ALLOWED_COLLECTION_TYPES:
             raise phaistos.exceptions.IncorrectFieldTypeError(collection_type)
-
-    @classmethod
-    def _transpile_nested_property(cls, prop: ParsedProperty) -> TranspiledProperty:
-        class NestedPropertySchema(TranspiledSchema):
-            pass
-
-        NestedPropertySchema.__name__ = f'{prop["name"].capitalize()}Schema'
-        nested_model_transpilation = cls.properties([
-            ParsedProperty(
-                name=property_name,
-                data=property_data
-            )
-            for property_name, property_data in prop['data']['properties'].items()
-        ])
-        compiled_nested_schema = NestedPropertySchema.compile(
-            prop['name'],
-            nested_model_transpilation
-        )
-        return TranspiledProperty(
-            type=compiled_nested_schema,
-            default=...,
-            validator=cls.validator(prop),
-            constraints={}
-        )
 
     @classmethod
     def properties(cls, properties: list[ParsedProperty]) -> TranspiledModelData:
@@ -264,10 +181,6 @@ class Transpiler:
         """
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
-        class RootSchema(TranspiledSchema):
-            version: typing.ClassVar[str] = schema['version']
-            description: typing.ClassVar[str] = schema['description']
-
         transpilation = cls.properties([
             ParsedProperty(
                 name=property_name,
@@ -280,24 +193,12 @@ class Transpiler:
 
         if 'validator' in schema:
             cls._logger.info('Compiling global model validator')
-            global_model_validator_function = cls._compile_validator_function(
+            global_model_validator_function = ValidationFunctionsCompiler._compile_validator_function(
                 f'validate_{schema['name'].lower()}',
                 schema['validator']['source'],
                 kind='model'
             )
-            transpiled_global_validator = TranspiledValidator(
-                field='__root__',
-                name=phaistos.sources.MODEL_VALIDATOR_FUNCTION_NAME,
-                method=pydantic.model_validator(
-                    mode=schema['validator']['mode'],
-                )(global_model_validator_function)
-            )
-            if 'validator' in transpilation:
-                transpilation['validators'].append(
-                    transpiled_global_validator
-                )
-            else:
-                transpilation['validators'] = [transpiled_global_validator]
+            transpilation['global_validator'] = global_model_validator_function
 
         transpiled_property_names = ', '.join([
             key
@@ -305,6 +206,10 @@ class Transpiler:
             if not key.startswith('_')
         ])
         cls._logger.info(f"Schema {schema['name']} has been transpiled successfully. Transpiled properties: {transpiled_property_names}")
+
+        class RootSchema(TranspiledSchema):
+            version: typing.ClassVar[str] = schema.get('version', '')
+            description: typing.ClassVar[str] = schema.get('description', '')
 
         return RootSchema.compile(
             schema['name'],

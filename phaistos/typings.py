@@ -58,7 +58,7 @@ class ParsedProperty(typing.TypedDict):
     data: RawSchemaProperty
 
 
-class TranspiledValidator(typing.TypedDict):
+class CompiledValidator(typing.TypedDict):
     """
     A dictionary that represents a transpiled property validator.
 
@@ -83,7 +83,7 @@ class TranspiledProperty(typing.TypedDict):
     """
     type: type
     default: typing.Any
-    validator: TranspiledValidator | None
+    validator: CompiledValidator | None
     constraints: dict[str, typing.Any]
 
 
@@ -96,9 +96,10 @@ class TranspiledModelData(typing.TypedDict):
         properties (dict[str, typing.Any]): A dictionary of transpiled properties.
         context (dict[str, typing.Any]): A dictionary of the context of the model, used during validation.
     """
-    validators: list[TranspiledValidator]
+    validators: list[CompiledValidator]
     properties: dict[str, typing.Any]
     context: typing.NotRequired[dict[str, typing.Any]]
+    global_validator: typing.NotRequired[typing.Any]
 
 
 @dataclasses.dataclass(kw_only=True)

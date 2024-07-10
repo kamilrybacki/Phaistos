@@ -134,7 +134,7 @@ MOCK_SCHEMA_PATCHES: list[
                     'description': 'Name of the nested test',
                     'type': 'str',
                 },
-                'age_name': {
+                'nested_age': {
                     'description': 'Age of the nested test',
                     'type': 'int',
                     'invalid': ([], [
