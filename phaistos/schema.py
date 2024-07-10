@@ -29,4 +29,3 @@ class TranspiledSchema(pydantic.BaseModel):
         )
         schema._context = model_data.get('context', {})  # type: ignore
         return schema
-
