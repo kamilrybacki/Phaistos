@@ -102,38 +102,6 @@ def _run_data_validation(
     del validator
 
 
-@pytest.mark.parametrize(
-    'config_filename',
-    [
-        'valid_config_file',
-        'faulty_config_file',
-    ],
-)
-def test_schema_validation_workflow(config_filename: str, logger, request) -> None:
-    config_file = request.getfixturevalue(config_filename)
-    temporary_schema_directory = '/tmp/phaistos_test_configs'
-    shutil.rmtree(temporary_schema_directory, ignore_errors=True)
-    os.makedirs(temporary_schema_directory, exist_ok=True)
-
-    temporary_schema_name = f'mock-{config_file["name"]}-{config_file["version"]}.yaml'
-    with open(
-        file=f'{temporary_schema_directory}/{temporary_schema_name}',
-        mode='w',
-        encoding='utf-8'
-    ) as schema_file:
-        yaml.dump(config_file, schema_file)
-    logger.info(f'Created temporary schema: {temporary_schema_name}')
-
-    initial_schema_path = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
-    os.environ['PHAISTOS__SCHEMA_PATH'] = temporary_schema_directory
-
-    with conftest.schema_discovery():
-        validator: phaistos.Validator = phaistos.Validator.start()
-        _run_data_validation(config_file, validator, logger)
-
-    os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
-
-
 def test_manual_schema_loading() -> None:
     with conftest.schema_discovery(state=False):
         validator = phaistos.Validator.start()
@@ -159,6 +127,39 @@ def test_manual_schema_loading() -> None:
 
         # Validate the data against the schema
         assert validator.validate(**MOCK_PERSON).valid  # type: ignore
+
+
+@pytest.mark.parametrize(
+    'config_filename',
+    [
+        'valid_config_file',
+        'faulty_config_file',
+    ],
+)
+def test_schema_validation_workflow(config_filename: str, logger, request) -> None:
+    config_file = request.getfixturevalue(config_filename)
+    temporary_schema_directory = '/tmp/phaistos_test_configs'
+    shutil.rmtree(temporary_schema_directory, ignore_errors=True)
+    os.makedirs(temporary_schema_directory, exist_ok=True)
+
+    temporary_schema_name = f'mock-{config_file["name"]}-{config_file["version"]}.yaml'
+    with open(
+        file=f'{temporary_schema_directory}/{temporary_schema_name}',
+        mode='w',
+        encoding='utf-8'
+    ) as schema_file:
+        yaml.dump(config_file, schema_file)
+    logger.info(f'Created temporary schema: {temporary_schema_name}')
+
+    initial_schema_path = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+    os.environ['PHAISTOS__SCHEMA_PATH'] = temporary_schema_directory
+
+    with conftest.schema_discovery(state=False):
+        validator: phaistos.Validator = phaistos.Validator.start()
+        validator.load_schema(config_file)
+        _run_data_validation(config_file, validator, logger)
+
+    os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
 
 
 def test_if_context_is_passed_during_validation() -> None:

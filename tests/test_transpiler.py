@@ -20,8 +20,15 @@ def _check_transpiled_validator(
     logger
 ) -> None:
     logger.info(f'Checking validator {validator.__name__} for data: {data}')
+
+    class DummyInfo:
+        field_name = 'whatever'
+
     with pytest.raises(ValueError):
-        validator(data)
+        validator(
+            data,
+            info=DummyInfo
+        )
 
 
 # pylint: disable=protected-access,c-extension-no-member
@@ -31,7 +38,7 @@ def _check_constraints(
     logger
 ) -> None:
     logger.info('Checking constraints for invalid data: %s', data)
-    with pytest.raises(pydantic_core._pydantic_core.ValidationError):
+    with pytest.raises(pydantic_core.ValidationError):
         transpiled_schema(**data)
 
 

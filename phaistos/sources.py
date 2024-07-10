@@ -15,7 +15,7 @@ LOGGER_TEMPLATE = """
 FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE = '%s_validator'
 FIELD_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
 %(decorator)s
-def %(name)s(%(first_argument)s, value, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
+def %(name)s(%(first_argument)s, value, %(extra_arguments)s info: pydantic.ValidationInfo):
 {LOGGER_TEMPLATE}
 {FIELD_VALIDATOR_VALUE_COPY_TEMPLATE}
   if not value or value is None:
@@ -27,9 +27,8 @@ def %(name)s(%(first_argument)s, value, %(extra_arguments)s info: pydantic.Valid
 MODEL_VALIDATOR_FUNCTION_NAME = 'validate_model'
 MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
 %(decorator)s
-def %(name)s(%(first_argument)s, %(extra_arguments)s info: pydantic.ValidationInfo | None = None):
+def %(name)s(%(first_argument)s, %(extra_arguments)s info: pydantic.ValidationInfo):
 {LOGGER_TEMPLATE}
-logger.info('Validating model')
 {MODEL_ALL_FIELDS_COPY_TEMPLATE}
   %(source)s
   return %(first_argument)s

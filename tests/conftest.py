@@ -9,6 +9,7 @@ import yaml
 
 import consts  # type: ignore
 import phaistos.consts
+import phaistos.sources
 import phaistos.typings
 
 
@@ -38,7 +39,7 @@ def find_custom_validators(data: dict) -> list[tuple[str, str, list]]:
     for property_name, property_data in data.items():
         found_validators += [(
             property_data['type'],
-            phaistos.consts.FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE % property_name,
+            phaistos.sources.FIELD_VALIDATOR_FUNCTION_NAME_TEMPLATE % property_name,
             property_data['invalid']
         )] if 'validator' in property_data else []
         found_validators.extend(
