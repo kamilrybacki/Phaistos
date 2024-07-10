@@ -381,3 +381,20 @@ class Person(pydantic.BaseModel):
 ```
 
 This model becomes a part of available Pydantic models in the Phaistos validator, and you can use it to validate data against the schema.
+
+### Validator function mode
+
+Just as in Pydantic, Phaistos allows you to define the mode of the validator function. The mode can be either `before` or `after`, and it is defined in the `validator` field of the schema manifest.
+
+This requires to split the definition of `validator` field into two parts: the `source` and the `mode`. The `source` part contains the actual validator code, and the `mode` part contains the mode of the validator function:
+
+```yaml
+name: age
+validator:
+  mode: after
+  source: |
+    if age < 18:
+      raise ValueError("The age must be at least 18")
+```
+
+The differences between those modes are the same as in Pydantic, so for more information, refer to the [Pydantic documentation](https://pydantic-docs.helpmanual.io/usage/validators/).

@@ -14,7 +14,7 @@ person:
   age:
     type: int
     description: The age of the person
-    validators: |
+    validator: |
         if age < 18:
             raise ValueError("The age must be at least 18")
   email:

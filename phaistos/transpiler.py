@@ -47,17 +47,22 @@ class Transpiler:
         Returns:
             TranspiledPropertyValidator: A Pydantic model field validator.
         """
-        if 'validator' in prop['data']:
-            cls._check_for_forrbidden_imports(prop['data']['validator']['source'])
-            if 'type' not in prop['data']:
-                cls._logger.info('Compiling model validator')
-                return cls._construct_model_validator(prop)
-            cls._logger.info(f'Compiling field validator for {prop["name"]}')
-            return cls._construct_field_validator(prop)
-        return None
+        if 'validator' not in prop['data']:
+            return None
+        if isinstance(prop['data']['validator'], str):
+            prop['data']['validator'] = RawValidator({
+                'source': prop['data']['validator'],
+                'mode': 'after' if 'type' in prop['data'] else 'before'
+            })
+        cls._check_for_forbidden_imports(prop['data']['validator']['source'])
+        if 'type' not in prop['data']:
+            cls._logger.info('Compiling model validator')
+            return cls._construct_model_validator(prop)
+        cls._logger.info(f'Compiling field validator for {prop["name"]}')
+        return cls._construct_field_validator(prop)
 
     @classmethod
-    def _check_for_forrbidden_imports(cls, source: str) -> None:
+    def _check_for_forbidden_imports(cls, source: str) -> None:
         if any(
             module in source
             for module in phaistos.consts.BLOCKED_MODULES

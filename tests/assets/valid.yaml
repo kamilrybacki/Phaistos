@@ -7,11 +7,9 @@ properties:
     type: str
     description: Name of the configuration
     default: mock
-    validator: 
-      mode: after
-      source: |
-        if name.startswith('_'):
-            raise ValueError('Name cannot start with underscore')
+    validator: |
+      if name.startswith('_'):
+          raise ValueError('Name cannot start with underscore')
   someStrings:
     type: list[str]
     description: List of strings
