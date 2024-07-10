@@ -10,8 +10,8 @@ properties:
     validator: 
       mode: after
       source: |
-        if value.startswith('_'):
-            raise ValueError('Short name cannot start with underscore')
+        if name.startswith('_'):
+            raise ValueError('Name cannot start with underscore')
   someStrings:
     type: list[str]
     description: List of strings

@@ -3,7 +3,7 @@ underscore_in_name: &underscore_in_name
     mode: after
     source: |
       if value.startswith('_'):
-        raise ValueError('Short name cannot start with underscore')
+        raise ValueError(f'{info.field_name} cannot start with underscore')
 
 _valid: false
 _expected_failures:
