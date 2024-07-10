@@ -6,14 +6,19 @@ import pydantic.decorator
 import pydantic.typing
 
 from phaistos.typings import TranspiledModelData
+from phaistos.exceptions import FieldValidationErrorInfo
 
 
+# pylint: disable=unused-private-member
 class TranspiledSchema(pydantic.BaseModel):
     """
     A Pydantic model that represents a transpiled schema.
     """
-    _context: dict[str, typing.Any] = pydantic.PrivateAttr()
-    _global_validator: typing.Optional[typing.Callable[[TranspiledSchema, typing.Any], None]] = pydantic.PrivateAttr()
+    _context: dict[str, typing.Any] = pydantic.PrivateAttr({})
+    global_validator: typing.ClassVar[
+        typing.Callable[[TranspiledSchema, typing.Any], None] | None
+    ]
+    global_validation_error: typing.ClassVar[FieldValidationErrorInfo | None] = None
 
     # pylint: disable=protected-access
     @classmethod
@@ -29,24 +34,26 @@ class TranspiledSchema(pydantic.BaseModel):
             **model_data['properties']
         )
         schema._context = model_data.get('context', {})  # type: ignore
-        if model_data.get('global_validator'):
-            schema._global_validator = model_data.get('global_validator')
+        schema.global_validator = model_data.get('global_validator')
         return schema
 
-    # pylint: disable=not-callable
-    def model_post_init(self, __context: typing.Any) -> None:
-        if self._global_validator:
-            self._global_validator(self, __context)
-
-    # pylint: disable=no-self-argument, unused-variable, super-init-not-called
-    def __init__(__pydantic_self__, **data: typing.Any) -> None:  # type: ignore
+    # pylint: disable=no-self-argument, unused-variable, super-init-not-called, not-callable
+    def __init__(self, **data: typing.Any) -> None:  # type: ignore
         """
             A modified version of the Pydantic BaseModel __init__ method that
-            passed the context to the validator of __pydantic_self__.
+            passed the context to the validator.
         """
         __tracebackhide__ = True
-        __pydantic_self__.__pydantic_validator__.validate_python(
+        try:
+            if self.__class__.global_validator:
+                self.__class__.global_validator(data)  # type: ignore
+        except Exception as validator_exception:  # pylint: disable=broad-except
+            self.__class__.global_validation_error = FieldValidationErrorInfo(
+                name=self.__class__.__name__,
+                message=str(validator_exception)
+            )
+        self.__pydantic_validator__.validate_python(
             data,
-            self_instance=__pydantic_self__,
-            context=__pydantic_self__._context
+            self_instance=self,
+            context=self._context
         )

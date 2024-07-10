@@ -1,0 +1,40 @@
+underscore_in_name: &underscore_in_name
+
+_valid: false
+_expected_failures:
+  - NestedSchema
+  - FaultyNested
+  - table
+version: v1
+name: FaultyNested
+description: Mock configuration for data validation tests
+properties:
+  NestedSchema:
+    description: Nested schema
+    properties:
+      host:
+        type: str
+        description: Hostname of the server
+        default: localhost
+      port:
+        type: int
+        description: Port number of the server
+        default: -1000  # This should raise an error
+    validator: |
+        if NestedSchema['host'].startswith('_'):
+          raise ValueError('Host cannot start with underscore')
+        if NestedSchema['port'] < 0:
+          raise ValueError('Port cannot be negative')
+  table:
+    type: str
+    description: Name of the table
+    default: _table # This should raise an error
+    validator: |
+      if table.startswith('_'):
+        raise ValueError(f'{info.field_name} cannot start with underscore')
+validator: 
+  mode: after
+  source: |
+    full_address = f'{NestedSchema['host']}:{NestedSchema['port']}/{table}'
+    if '_' in full_address:
+      raise ValueError('Underscore is not allowed in the address')

@@ -74,34 +74,6 @@ def test_schema_discovery_exceptions(
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path
 
 
-def _run_data_validation(
-    schema: SchemaInputFile,
-    validator: phaistos.Validator,
-    logger
-) -> None:
-    data_from_schema = conftest.create_mock_schema_data(
-        applied_properties=schema['properties']
-    )
-
-    logger.info(f'Validating data {data_from_schema} against schema: {schema["name"]}')
-
-    results = validator.validate(
-        data=data_from_schema,
-        schema=schema['name']
-    )
-
-    logger.info(f'Validation results:\n{results}')
-
-    assert results.valid == schema['_valid']  # type: ignore
-    if not results.valid:
-        failed_fields = [
-            error.name
-            for error in results.errors
-        ]
-        assert failed_fields == schema['_expected_failures']  # type: ignore
-    del validator
-
-
 def test_manual_schema_loading() -> None:
     with conftest.schema_discovery(state=False):
         validator = phaistos.Validator.start()
@@ -133,7 +105,8 @@ def test_manual_schema_loading() -> None:
     'config_filename',
     [
         'valid_config_file',
-        'faulty_config_file',
+        'faulty_flat_config_file',
+        'faulty_nested_config_file',
     ],
 )
 def test_schema_validation_workflow(config_filename: str, logger, request) -> None:
@@ -157,7 +130,26 @@ def test_schema_validation_workflow(config_filename: str, logger, request) -> No
     with conftest.schema_discovery(state=False):
         validator: phaistos.Validator = phaistos.Validator.start()
         validator.load_schema(config_file)
-        _run_data_validation(config_file, validator, logger)
+        data_from_schema = conftest.create_mock_schema_data(
+            applied_properties=config_file['properties']
+        )
+
+        results = validator.validate(
+            data=data_from_schema,
+            schema=config_file['name']
+        )
+
+        logger.info(f'Validation results:\n{results}')
+
+        assert results.valid == config_file['_valid']  # type: ignore
+        if not results.valid:
+            failed_fields = [
+                error.name
+                for error in results.errors
+            ]
+            difference = set(failed_fields) ^ set(config_file['_expected_failures'])
+            assert not difference, f'Failed fields: {failed_fields}'
+        del validator
 
     os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
 

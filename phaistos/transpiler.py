@@ -1,19 +1,13 @@
 # pylint: disable=protected-access, too-few-public-methods
 from __future__ import annotations
 import dataclasses
-import copy
 import logging
 import pydoc
-import re
 import typing
-
-import pydantic
-import pydantic_core
 
 import phaistos.consts
 import phaistos.schema
 import phaistos.sources
-import phaistos.exceptions
 from phaistos.typings import (
     SchemaInputFile,
     ParsedProperty,
@@ -24,8 +18,7 @@ from phaistos.typings import (
 )
 from phaistos.schema import TranspiledSchema
 from phaistos.compiler import ValidationFunctionsCompiler
-
-logging.basicConfig(level=logging.INFO)
+import phaistos.utils
 
 
 @dataclasses.dataclass
@@ -37,7 +30,7 @@ class Transpiler:
 
     # pylint: disable=unnecessary-lambda-assignment
     @classmethod
-    def validator(cls, prop: ParsedProperty) -> CompiledValidator | None:
+    def make_validator(cls, prop: ParsedProperty) -> CompiledValidator | None:
         """
         Method to transpile a property's validator into a Pydantic model field validator.
 
@@ -49,15 +42,10 @@ class Transpiler:
         """
         if 'validator' not in prop['data']:
             return None
-        if isinstance(prop['data']['validator'], str):
-            prop['data']['validator'] = RawValidator({
-                'source': prop['data']['validator'],
-                'mode': 'after' if 'type' in prop['data'] else 'before'
-            })
         return ValidationFunctionsCompiler.compile(prop)
 
     @classmethod
-    def property(cls, prop: ParsedProperty) -> TranspiledProperty:
+    def make_property(cls, prop: ParsedProperty) -> TranspiledProperty:
         """
         Method to transpile a property into a Pydantic model field.
 
@@ -68,7 +56,7 @@ class Transpiler:
             TranspiledProperty: A Pydantic model field.
         """
         if 'properties' not in prop['data']:
-            adjusted_data = cls._adjust_if_collection_type_is_used(prop)
+            adjusted_data = phaistos.utils.adjust_collection_type_property_entry(prop)
             return TranspiledProperty(
                 type=pydoc.locate(  # type: ignore
                     path=str(
@@ -76,53 +64,28 @@ class Transpiler:
                     )
                 ),
                 default=adjusted_data['data'].get('default', ...),
-                validator=cls.validator(adjusted_data),
+                validator=cls.make_validator(adjusted_data),
                 constraints=adjusted_data['data'].get('constraints', {})
             )
         return TranspiledProperty(
-            type=cls.schema({
+            type=cls.make_schema({
                 'name': prop['name'],
                 'version': prop['data'].get('version', '...'),  # type: ignore
                 'description': prop['data'].get('description', ''),
                 'properties': prop['data']['properties'],
+                'context': prop['data'].get('context', {}),  # type: ignore
+                'validator': prop['data'].get('validator', RawValidator({
+                    'source': 'pass',
+                    'mode': 'before'
+                }))
             }),
             default=...,
-            validator=cls.validator(prop),
+            validator=cls.make_validator(prop),
             constraints={}
         )
 
     @classmethod
-    def _adjust_if_collection_type_is_used(cls, prop: ParsedProperty) -> ParsedProperty:
-        adjusted = copy.deepcopy(prop)
-        validator_data = adjusted['data'].get('validator', RawValidator({
-            'source': '',
-            'mode': 'after'
-        }))
-        if match := re.match(
-            phaistos.consts.COLLECTION_TYPE_REGEX,
-            adjusted['data']['type']
-        ):
-            cls._check_if_collection_type_is_allowed(match['collection'])
-            adjusted['data']['validator'] = RawValidator(
-                source=validator_data['source'] + phaistos.sources.COLLECTION_VALIDATOR_TEMPLATE % (
-                    match['item'],
-                    adjusted['name'],
-                    match['item']
-                ),
-                mode=validator_data['mode']
-            )
-            adjusted['data']['type'] = match['collection']
-        else:
-            adjusted['data']['validator'] = validator_data
-        return adjusted
-
-    @staticmethod
-    def _check_if_collection_type_is_allowed(collection_type: str) -> None:
-        if collection_type not in phaistos.consts.ALLOWED_COLLECTION_TYPES:
-            raise phaistos.exceptions.IncorrectFieldTypeError(collection_type)
-
-    @classmethod
-    def properties(cls, properties: list[ParsedProperty]) -> TranspiledModelData:
+    def make_properties(cls, properties: list[ParsedProperty]) -> TranspiledModelData:
         """
         Method to read a list of properties and transpile them into a Pydantic model fields.
 
@@ -133,11 +96,11 @@ class Transpiler:
             TranspiledModelData: A dictionary with the transpiled properties.
         """
         transpiled_model_data: dict[str, TranspiledProperty] = {
-            prop['name']: cls.property(prop)
+            prop['name']: cls.make_property(prop)
             for prop in properties
         }
         properties_annotations: typing.Dict[str, typing.Any] = {
-            property_name: cls._construct_field_annotation(property_data)
+            property_name: phaistos.utils.construct_field_annotation(property_data)
             for property_name, property_data in transpiled_model_data.items()
             if not isinstance(property_data, type)
         } | {
@@ -155,21 +118,8 @@ class Transpiler:
             properties=properties_annotations
         )
 
-    @staticmethod
-    def _construct_field_annotation(property_data: TranspiledProperty) -> tuple[type, pydantic.fields.FieldInfo]:
-        return (
-            property_data['type'],
-            pydantic.fields.FieldInfo(
-                default=property_data.get(
-                    'default',
-                    pydantic_core.PydanticUndefined
-                ),
-                **property_data['constraints']
-            )
-        )
-
     @classmethod
-    def schema(cls, schema: SchemaInputFile) -> type[TranspiledSchema]:
+    def make_schema(cls, schema: SchemaInputFile) -> type[TranspiledSchema]:
         """
         Transpile a schema into a Pydantic model.
 
@@ -181,7 +131,7 @@ class Transpiler:
         """
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
-        transpilation = cls.properties([
+        transpilation = cls.make_properties([
             ParsedProperty(
                 name=property_name,
                 data=property_data
@@ -192,13 +142,17 @@ class Transpiler:
         transpilation['context'] = schema.get('context', {})  # type: ignore
 
         if 'validator' in schema:
-            cls._logger.info('Compiling global model validator')
-            global_model_validator_function = ValidationFunctionsCompiler._compile_validator_function(
-                f'validate_{schema['name'].lower()}',
-                schema['validator']['source'],
-                kind='model'
-            )
+            cls._logger.info(f'Compiling {schema["name"]} model validator')
+            validator_source = schema['validator'] if isinstance(schema['validator'], str) else schema['validator']['source']
+            global_model_validator_function = ValidationFunctionsCompiler._compile_validator({
+                'name': f'validate_{schema["name"].lower()}',
+                'decorator': '@classmethod',
+                'source': validator_source,
+                'kind': 'model'
+            })
             transpilation['global_validator'] = global_model_validator_function
+
+        print(transpilation)
 
         transpiled_property_names = ', '.join([
             key
@@ -207,11 +161,11 @@ class Transpiler:
         ])
         cls._logger.info(f"Schema {schema['name']} has been transpiled successfully. Transpiled properties: {transpiled_property_names}")
 
-        class RootSchema(TranspiledSchema):
+        class _Schema(TranspiledSchema):
             version: typing.ClassVar[str] = schema.get('version', '')
             description: typing.ClassVar[str] = schema.get('description', '')
 
-        return RootSchema.compile(
+        return _Schema.compile(
             schema['name'],
             transpilation
         )

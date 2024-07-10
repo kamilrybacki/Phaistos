@@ -65,11 +65,17 @@ def mock_config_file_base() -> phaistos.typings.SchemaInputFile:
 
 
 @pytest.fixture(scope='session')
-def faulty_config_file() -> phaistos.typings.SchemaInputFile:
+def faulty_flat_config_file() -> phaistos.typings.SchemaInputFile:
     return __open_yaml_file(
-        os.path.join(consts.TESTS_ASSETS_PATH, 'faulty.yaml')
+        os.path.join(consts.TESTS_ASSETS_PATH, 'faulty_flat.yaml')
     )
 
+
+@pytest.fixture(scope='session')
+def faulty_nested_config_file() -> phaistos.typings.SchemaInputFile:
+    return __open_yaml_file(
+        os.path.join(consts.TESTS_ASSETS_PATH, 'faulty_nested.yaml')
+    )
 
 @pytest.fixture(scope='session')
 def valid_config_file() -> phaistos.typings.SchemaInputFile:

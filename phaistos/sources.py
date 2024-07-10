@@ -17,11 +17,6 @@
     - info: The info object that contains the field name and other information about the field (pydantic.ValidationInfo object with optional extra context)
 """
 
-MODEL_ALL_FIELDS_COPY_TEMPLATE = """
-  for field in %(first_argument)s.__dict__:
-    globals()[field] = getattr(%(first_argument)s, field)
-"""
-
 FIELD_VALIDATOR_VALUE_COPY_TEMPLATE = """
   globals()[info.field_name] = value
 """
@@ -45,10 +40,11 @@ def %(name)s(%(first_argument)s, value, %(extra_arguments)s info):
 
 MODEL_VALIDATOR_FUNCTION_NAME = 'validate_model'
 MODEL_VALIDATOR_FUNCTION_SOURCE_TEMPLATE = f"""
+import typing
 %(decorator)s
 def %(name)s(%(first_argument)s, %(extra_arguments)s info):
 {LOGGER_TEMPLATE}
-{MODEL_ALL_FIELDS_COPY_TEMPLATE}
+  globals().update(info)
   %(source)s
   return %(first_argument)s
 """

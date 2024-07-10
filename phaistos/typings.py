@@ -2,6 +2,8 @@ from __future__ import annotations
 import dataclasses
 import typing
 
+from phaistos.exceptions import FieldValidationErrorInfo
+
 
 class RawSchemaProperty(typing.TypedDict):
     """
@@ -100,22 +102,6 @@ class TranspiledModelData(typing.TypedDict):
     properties: dict[str, typing.Any]
     context: typing.NotRequired[dict[str, typing.Any]]
     global_validator: typing.NotRequired[typing.Any]
-
-
-@dataclasses.dataclass(kw_only=True)
-class FieldValidationErrorInfo:
-    """
-    A dataclass that represents a field validation error.
-
-    Attributes:
-        name (str): The name of the field.
-        message (str): The message of the field.
-    """
-    name: str
-    message: str
-
-    def __str__(self) -> str:
-        return f'{self.name}: {self.message}'
 
 
 @dataclasses.dataclass(kw_only=True)

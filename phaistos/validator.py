@@ -10,12 +10,11 @@ import pydantic
 from phaistos.transpiler import Transpiler
 from phaistos.typings import (
     SchemaInputFile,
-    FieldValidationErrorInfo,
     ValidationResults
 )
 from phaistos.schema import TranspiledSchema
 from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
-from phaistos.exceptions import SchemaParsingException
+from phaistos.exceptions import SchemaParsingException, FieldValidationErrorInfo
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -43,6 +42,8 @@ class ValidationHandler:
         """
         collected_errors: list[FieldValidationErrorInfo] = []
         self._run_validators(data, collected_errors)
+        if self._model.global_validation_error:
+            collected_errors.append(self._model.global_validation_error)
         return ValidationResults(
             valid=not collected_errors,
             schema=self._model.model_json_schema(),
@@ -56,7 +57,7 @@ class ValidationHandler:
         except pydantic.ValidationError as validation_error:
             collected_errors.extend([
                 FieldValidationErrorInfo(
-                    name=str(error['loc'][0]) if error['loc'] else '__root__',
+                    name=str(error['loc'][0]) if error['loc'] else validation_error.title,
                     message=error['msg']
                 )
                 for error in validation_error.errors()
@@ -138,7 +139,7 @@ class Validator:
 
     def load_schema(self, schema: SchemaInputFile) -> str:
         self._logger.info(f'Loading schema: {schema["name"]}')
-        schema_class = Transpiler.schema(schema)
+        schema_class = Transpiler.make_schema(schema)
         self._schemas[schema_class.__name__] = ValidationHandler(
             name=schema_class.__name__,
             _model=schema_class
@@ -158,7 +159,7 @@ class Validator:
 
                 with open(schema_path, 'r', encoding='utf-8') as schema_file:
                     schema_data = yaml.safe_load(schema_file)
-                    schema_class = Transpiler.schema(schema_data)
+                    schema_class = Transpiler.make_schema(schema_data)
                     schemas.append(schema_class)
                 continue
 

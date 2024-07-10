@@ -7,11 +7,11 @@ underscore_in_name: &underscore_in_name
 
 _valid: false
 _expected_failures:
-  - __root__
+  - FaultyFlat
   - database
   - table
 version: v1
-name: FaultyConfig
+name: FaultyFlat
 description: Mock configuration for data validation tests
 validator: 
   mode: after

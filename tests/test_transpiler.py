@@ -81,7 +81,7 @@ def test_patched_schema_transpilation(patch: dict, mock_config_file_base, logger
         property: patch[property]['type'] if 'type' in patch[property] else 'nested'
         for property in patch
     })
-    transpiled_schema = Transpiler.schema(
+    transpiled_schema = Transpiler.make_schema(
         schema=mock_config_file_base | {
             'properties': patch
         }
@@ -145,7 +145,7 @@ def test_module_shadowing(blocked_module, mock_config_file_base, logger) -> None
     logger.info(f'Testing module shadowing for module: {blocked_module}')
     try:
         Transpiler.supress_logging()
-        forbidden_schema = Transpiler.schema(
+        forbidden_schema = Transpiler.make_schema(
             schema=mock_config_file_base | {
                 'properties': {
                     'text': {
@@ -176,7 +176,7 @@ def test_module_shadowing(blocked_module, mock_config_file_base, logger) -> None
 )
 def test_possible_exploits(exploit: dict[str, str], mock_config_file_base) -> None:
     try:
-        schema = Transpiler.schema(
+        schema = Transpiler.make_schema(
             schema=mock_config_file_base | {
                 'properties': {
                     'whatever': {

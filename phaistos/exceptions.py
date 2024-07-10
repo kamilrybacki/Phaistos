@@ -1,3 +1,5 @@
+import dataclasses
+
 
 class ForbiddenModuleUseInValidator(ImportError):
     def __init__(self, *args: object, name: str | None = None, path: str | None = None) -> None:
@@ -16,3 +18,19 @@ class IncorrectFieldTypeError(ValueError):
         else:
             message = f'Invalid field type: {field_type}'
         super().__init__(message)
+
+
+@dataclasses.dataclass(kw_only=True)
+class FieldValidationErrorInfo:
+    """
+    A dataclass that represents a field validation error.
+
+    Attributes:
+        name (str): The name of the field.
+        message (str): The message of the field.
+    """
+    name: str
+    message: str
+
+    def __str__(self) -> str:
+        return f'{self.name}: {self.message}'

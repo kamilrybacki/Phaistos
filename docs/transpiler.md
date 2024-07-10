@@ -10,11 +10,11 @@ Below, the main methods of the transpiler are described.
 
 ### Schema transpilation
 
-This action is performed by `schema` method and is responsible for converting the YAML schema into a Pydantic model and returns it.
+This action is performed by `make_schema` method and is responsible for converting the YAML schema into a Pydantic model and returns it.
 
-`phaistos.transpiler.Transpiler.schema`
+`phaistos.transpiler.Transpiler.make_schema`
 
-::: phaistos.transpiler.Transpiler.schema
+::: phaistos.transpiler.Transpiler.make_schema
 
 As for the information returned by this method, it is a Pydantic model, which can be used to validate the data with some fields automatically injected during transpilation:
 
@@ -47,7 +47,7 @@ from phaistos.typings import TranspiledSchema
 
 schema_read_from-data = ... # Read the schema from a file or something
 
-transpiled_schema: TranspiledSchema = Transpiler.schema(schema_read_from_data)
+transpiled_schema: TranspiledSchema = Transpiler.make_schema(schema_read_from_data)
 ```
 
 After that, the `TranspiledSchema` can be manually invoked via `validate` method,
