@@ -59,48 +59,5 @@ data = ... # Read the data from somewhere
 transpiled_schema.validate(data)
 ```
 
-Congratulations! You have performed the thing that the `Validator` class does
-in the background.
-
-### Get the data model
-
-If You need to get the Pydantic model for a schema, you can use the `get_model` method:
-
-```python
-from phaistos import Validator
-
-# Initialize the Validator
-validator = Validator.start()
-
-schema_name = "person"
-
-# Get the Pydantic model for the schema
-model = validator.get_model(schema_name)
-```
-
-This model can be then used to create instances of the underlying data classes:
-
-```python
-data = {
-    "name": "John Doe",
-    "age": 30,
-    "email": "xxx@yahoo.com"
-}
-
-# Create an instance of the Pydantic model
-instance = model(**data)
-```
-
-This approch is useful when the data is to be used in a more object-oriented way e.g. when creating entries to a database.
-
-#### What is the difference between `validate` and `get_model`?
-
-The `validate` method is used to validate the data against the schema, while the `get_model` method is used to get the Pydantic model for the schema.
-
-So, the main result of `validate` is just a report on whether the data is valid or not, while the `get_model` method returns the Pydantic model, which can be used to create instances of the data classes.
-
-So, in short:
-
-* `get_model` -> `model` -> `model(**data)` -> VALIDATION -> CLEAN INSTANCE
-
-* `validate` -> VALIDATION -> IS VALID?
+Congratulations! You have performed the thing that the `Manager` class does
+in the background. Let's check it out!

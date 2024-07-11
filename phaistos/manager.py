@@ -1,77 +1,40 @@
 from __future__ import annotations
-import dataclasses
 import logging
 import os
 import typing
 import yaml
+
 
 from phaistos.transpiler import Transpiler
 from phaistos.typings import (
     SchemaInputFile,
     ValidationResults
 )
-from phaistos.schema import TranspiledSchema
-from phaistos.consts import DISCOVERY_EXCEPTIONS, VALIDATION_LOGGER
+from phaistos.schema import TranspiledSchema, SchemaInstancesFactory
+from phaistos.consts import DISCOVERY_EXCEPTIONS, MANAGER_LOGGER
 from phaistos.exceptions import SchemaLoadingException
 
 
-@dataclasses.dataclass(kw_only=True)
-class ValidationHandler:
-    """
-    A dataclass that represents a validation schema.
+class Manager:
+    _schemas: dict[str, SchemaInstancesFactory] = {}
+    _logger: typing.ClassVar[logging.Logger] = MANAGER_LOGGER
 
-    Attributes:
-        name (str): The name of the schema.
-        _model (type[TranspiledSchema]): The model of the schema, used for validation.
-    """
-    name: str
-    _model: type[TranspiledSchema]
-
-    def validate(self, data: dict) -> ValidationResults:
-        """
-        Validate the given data against the schema. Do not return
-        the validated data, only the validation results.
-
-        Args:
-            data (dict): The data to validate.
-
-        Returns:
-            ValidationResults: The validation results, including the schema, errors, and data.
-        """
-        self._model(**data)
-        collected_errors = [
-            *set(self._model.parent._validation_errors)
-        ]
-        return ValidationResults(
-            schema=self._model.model_json_schema(),
-            errors=collected_errors,
-            data=data
-        )
-
-    def __call__(self, *args: typing.Any, **kwds: typing.Any) -> TranspiledSchema:
-        return self._model(*args, **kwds)
-
-
-class Validator:
-    _schemas: dict[str, ValidationHandler] = {}
-    _logger: typing.ClassVar[logging.Logger] = VALIDATION_LOGGER
-
-    __instance: typing.ClassVar[Validator | None] = None
+    __instance: typing.ClassVar[Manager | None] = None
     __started: typing.ClassVar[bool] = False
     __last_used_schemas_dir: typing.ClassVar[str] = ''
 
     def validate(self, data: dict, schema: str) -> ValidationResults:
         self._logger.info(f'Validating data against schema: {schema}')
-        return self.get_model(schema).validate(data)
+        return self.get_factory(schema).validate(data)
 
     @classmethod
-    def start(cls) -> Validator:
+    def start(cls) -> Manager:
         if cls.__started and cls.__last_used_schemas_dir != os.environ.get('PHAISTOS__SCHEMA_PATH', ''):
             cls._logger.info('Schema path has changed. Reloading schemas.')
             cls.__instance = None
             cls.__started = False
         if not cls.__instance:
-            cls._logger.info('Starting Phaistos validator!')
+            cls._logger.info('Starting Phaistos manager!')
             cls.__started = True
             cls.__last_used_schemas_dir = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
             cls.__instance = cls()
@@ -80,24 +43,33 @@ class Validator:
     def __init__(self) -> None:
         if not self.__started:
             raise RuntimeError(
-                'Validator must be started using Validator.start()'
+                'Validator must be started using Manager.start()'
             )
         if not os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY'):
             self._schemas = self.get_available_schemas()
 
-    def get_model(self, name: str) -> ValidationHandler:
+    def get_factory(self, name: str) -> SchemaInstancesFactory:
+        """
+        Get a schema factory by name
+
+        Args:
+            name (str): The name of the schema
+
+        Returns:
+            SchemaInstancesFactory: The schema factory, that can be used to validate data and create instances of the model
+        """
         if name not in self._schemas:
             raise SchemaLoadingException(
                 f'Schema {name} not found'
             )
         return self._schemas[name]
 
-    def get_available_schemas(self, path: str = '') -> dict[str, ValidationHandler]:
+    def get_available_schemas(self, path: str = '') -> dict[str, SchemaInstancesFactory]:
         discovered_schemas = getattr(self, '_schemas', {})
         try:
             schemas_dir = path or os.environ['PHAISTOS__SCHEMA_PATH']
             for schema in self.__discover_schemas(schemas_dir):
-                discovered_schemas[schema.transpilation_name] = ValidationHandler(
+                discovered_schemas[schema.transpilation_name] = SchemaInstancesFactory(
                     name=schema.transpilation_name,
                     _model=schema
                 )
@@ -135,7 +107,7 @@ class Validator:
     def load_schema(self, schema: SchemaInputFile) -> str:
         self._logger.info(f'Loading schema: {schema["name"]}')
         schema_class = Transpiler.make_schema(schema)
-        self._schemas[schema['name']] = ValidationHandler(
+        self._schemas[schema['name']] = SchemaInstancesFactory(
             name=schema_class.transpilation_name,
             _model=schema_class
         )

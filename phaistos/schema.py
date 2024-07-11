@@ -1,12 +1,13 @@
 from __future__ import annotations
 import copy
+import dataclasses
 import typing
 
 import pydantic
 import pydantic.decorator
 import pydantic.typing
 
-from phaistos.typings import TranspiledModelData
+from phaistos.typings import TranspiledModelData, ValidationResults
 from phaistos.exceptions import FieldValidationErrorInfo
 
 
@@ -93,3 +94,42 @@ class TranspiledSchema(pydantic.BaseModel):
                 for error in validation_error.errors()
             ])
         self.parent._validation_errors += self._validation_errors + collected_errors
+
+
+@dataclasses.dataclass(kw_only=True)
+class SchemaInstancesFactory:
+    """
+    A dataclass that represents a validation schema.
+
+    Attributes:
+        name (str): The name of the schema.
+        _model (type[TranspiledSchema]): The model of the schema, used for validation.
+    """
+    name: str
+    _model: type[TranspiledSchema]
+    errors: list[FieldValidationErrorInfo] = dataclasses.field(default_factory=list)
+
+    def validate(self, data: dict) -> ValidationResults:
+        """
+        Validate the given data against the schema. Do not return
+        the validated data, only the validation results.
+
+        Args:
+            data (dict): The data to validate.
+
+        Returns:
+            ValidationResults: The validation results, including the schema, errors, and data.
+        """
+        self._model(**data)
+        collected_errors = [
+            *set(self._model.parent._validation_errors)  # pylint: disable=protected-access
+        ]
+        self.errors = collected_errors
+        return ValidationResults(
+            schema=self._model.model_json_schema(),
+            errors=collected_errors,
+            data=data
+        )
+
+    def build(self, data: dict[str, typing.Any]) -> TranspiledSchema | None:
+        return self._model(**data) if self.validate(data).valid else None

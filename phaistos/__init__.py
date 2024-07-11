@@ -1,7 +1,7 @@
-from phaistos.validator import Validator
+from phaistos.manager import Manager
 from phaistos.transpiler import Transpiler
 
 __all__ = [
-    'Validator',
+    'Manager',
     'Transpiler',
 ]

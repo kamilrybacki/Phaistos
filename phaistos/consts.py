@@ -4,7 +4,7 @@ import types
 import phaistos.utils
 
 TRANSPILATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (T)')
-VALIDATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (V)')
+MANAGER_LOGGER = phaistos.utils.setup_logger('PHAISTOS (M)')
 COMPILATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (C)')
 
 ALLOWED_COLLECTION_TYPES = {'list', 'set'}

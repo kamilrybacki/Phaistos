@@ -13,6 +13,7 @@ import conftest  # type: ignore
 
 import phaistos
 import phaistos.consts
+import phaistos.schema
 from phaistos.typings import SchemaInputFile
 
 
@@ -43,14 +44,14 @@ def test_schema_discovery_exceptions(
     logger.info(f'Testing schema discovery exception: {exception.__name__}')
 
     original_get_available_schemas = copy.deepcopy(
-        phaistos.Validator.get_available_schemas  # pylint: disable=protected-access
+        phaistos.Manager.get_available_schemas  # pylint: disable=protected-access
     )
 
     original_schema_path = copy.deepcopy(
         os.environ.get('PHAISTOS__SCHEMA_PATH', '')
     )
 
-    def patched_get_available_schemas(self: phaistos.Validator, path: str = ''):
+    def patched_get_available_schemas(self: phaistos.Manager, path: str = ''):
         patch_function = types.FunctionType(
             compile(
                 textwrap.dedent(hot_patch),
@@ -63,20 +64,20 @@ def test_schema_discovery_exceptions(
         return original_get_available_schemas(self, path)
 
     monkeypatch.setattr(
-        phaistos.Validator,
+        phaistos.Manager,
         'get_available_schemas',
         patched_get_available_schemas
     )
 
     with pytest.raises(exception):
-        phaistos.Validator.start()
+        phaistos.Manager.start()
     logger.info(f'Successfully tested schema discovery exception: {exception.__name__}')
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path
 
 
 def test_manual_schema_loading() -> None:
     with conftest.schema_discovery(state=False):
-        validator = phaistos.Validator.start()
+        manager = phaistos.Manager.start()
 
         schema: SchemaInputFile = {
             "version": "v1",
@@ -95,10 +96,10 @@ def test_manual_schema_loading() -> None:
         }
 
         # Load the schema
-        validator.load_schema(schema)
+        manager.load_schema(schema)
 
         # Validate the data against the schema
-        assert validator.validate(**MOCK_PERSON).valid  # type: ignore
+        assert manager.validate(**MOCK_PERSON).valid  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -133,10 +134,10 @@ def test_schema_validation_workflow(config_filename: str, logger, request) -> No
             applied_properties=config_file['properties']
         )
 
-        validator: phaistos.Validator = phaistos.Validator.start()
-        results = validator.validate(
+        manager: phaistos.Manager = phaistos.Manager.start()
+        results = manager.validate(
             data=data_from_schema,
-            schema=validator.load_schema(config_file)
+            schema=manager.load_schema(config_file)
         )
 
         logger.info(f'Validation results:\n{results}')
@@ -149,14 +150,14 @@ def test_schema_validation_workflow(config_filename: str, logger, request) -> No
             ]
             difference = set(failed_fields) ^ set(config_file['_expected_failures'])
             assert not difference, f'Failed fields: {failed_fields}'
-        del validator
+        del manager
 
     os.environ['PHAISTOS__SCHEMA_PATH'] = initial_schema_path
 
 
 def test_if_context_is_passed_during_validation() -> None:
     with conftest.schema_discovery(state=False):
-        validator = phaistos.Validator.start()
+        manager = phaistos.Manager.start()
 
         schema: SchemaInputFile = {
             "version": "v1",
@@ -178,7 +179,18 @@ def test_if_context_is_passed_during_validation() -> None:
         }
 
         # Load the schema
-        validator.load_schema(schema)
+        manager.load_schema(schema)
 
-        # Validate data against the schema with doomed validator (it will always raise an error, because value in context is the main culprit)
-        assert not validator.validate(**MOCK_PERSON).valid  # type: ignore
+        # Validate data against the schema with doomed manager (it will always raise an error, because value in context is the main culprit)
+        assert not manager.validate(**MOCK_PERSON).valid  # type: ignore
+
+
+def test_constructor_call_for_model(faulty_flat_config_file) -> None:
+    with conftest.schema_discovery(state=False):
+        manager = phaistos.Manager.start()
+        schema_name = manager.load_schema(faulty_flat_config_file)
+        mock_data = conftest.create_mock_schema_data(faulty_flat_config_file['properties'])
+
+        model = manager.get_factory(schema_name)
+        assert model.build(mock_data) is None
+        assert model._model.validation_errors != []  # pylint: disable=protected-access
