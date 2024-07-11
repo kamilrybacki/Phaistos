@@ -12,16 +12,16 @@ export PHAISTOS__DISABLE_SCHEMA_DISCOVERY=1
 ```
 
 This will prevent the automatic schema discovery during the first initialization
-of the `Validator` class. Then new schemas can be inserted manually, using
+of the `Manager` class. Then new schemas can be inserted manually, using
 `load_schema` method.
 
 Here is an example of how you can load a schema manifest from a file:
 
 ```python
-from phaistos import Validator
+from phaistos import Manager
 
-# Initialize the Validator
-validator = Validator.start()
+# Initialize the manager
+manager = Manager.start()
 
 # Create schema manually
 
@@ -37,7 +37,7 @@ schema = {
         "age": {
             "type": "int",
             "description": "The age of the person",
-            "validator": 'if value < 18: raise ValueError("The age must be at least 18")'
+            "manager": 'if value < 18: raise ValueError("The age must be at least 18")'
         },
         "email": {
             "type": "str",
@@ -48,7 +48,7 @@ schema = {
 
 # Load the schema - this will return the name of the schema
 # that can be used in the validate method
-schema_name = validator.load_schema(schema)
+schema_name = manager.load_schema(schema)
 
 # Validate data against the schema
 data = {
@@ -58,13 +58,13 @@ data = {
 }
 
 # Validate the data against the schema
-result = validator.validate(
+result = manager.validate(
     data=data,
     schema=schema_name
 )
 ```
 
-In this example, we first initialize the `Validator` class and then load a schema
+In this example, we first initialize the `Manager` class and then load a schema
 manually. The schema is a dictionary that describes the schema manifest and
 adheres to the `SchemaInputFile` structure:
 
@@ -76,6 +76,6 @@ adheres to the `SchemaInputFile` structure:
 
 ::: phaistos.typings.RawSchemaProperty
 
-The `load_schema` method is used to load the schema into the `Validator` object,
+The `load_schema` method is used to load the schema into the `Manager` object,
 which can be then used as a target for `validate` method. The `schema`
 argument **must match** the `name` field in the schema manifest (here: `Person`).

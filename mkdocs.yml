@@ -21,8 +21,8 @@ nav:
   - Transpiling schemas:
     - Defining a Schema: schema.md
     - Using the Transpiler: transpiler.md
-  - Validating data:
-    - Using the Validator: validator.md
+  - Managing schemas:
+    - Using validation mechanisms: manager.md
     - Skipping the autodiscovery: noauto.md
 markdown_extensions:
   - pymdownx.superfences:
