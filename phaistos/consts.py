@@ -6,6 +6,7 @@ import phaistos.utils
 TRANSPILATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (T)')
 MANAGER_LOGGER = phaistos.utils.setup_logger('PHAISTOS (M)')
 COMPILATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (C)')
+VALIDATION_LOGGER = phaistos.utils.setup_logger('PHAISTOS (V)')
 
 ALLOWED_COLLECTION_TYPES = {'list', 'set'}
 

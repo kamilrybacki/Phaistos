@@ -24,6 +24,8 @@ nav:
   - Managing schemas:
     - Using validation mechanisms: manager.md
     - Skipping the autodiscovery: noauto.md
+  - Other features:
+    - Logging: logging.md
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:

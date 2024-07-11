@@ -77,9 +77,10 @@ classes in Python (which is a whole different can of worms), we can
 quickly install Phaistos in the project and start using it to validate
 data against the defined schemas - which can be leveraged in distributed ETL pipelines (e.g. within Apache Spark workers), APIs, configurations, and more.
 
-#### Minor nitpicks 🤏
+#### Minor nitpicks 🤏 and quality-of-life boons
 
-Below is the section that lists little annoyances that Phaistos tries to solve:
+Below is the section that lists little annoyances that Phaistos tries to solve
+or things that may be considered as quality-of-life improvements.
 
 1. Normally, Pydantic will **not run** field validators for any attributes
 that were used in the previously failed model validator. So, this is slightly
@@ -91,3 +92,6 @@ abstract names, Phaistos allows you to reference them by their actual
 names. So, in the custom validator, you can use `name` instead of `value`
 for a field that is named ... `name`! This makes the code more readable
 and maintainable.
+3. You can use logging via the `logger` variable inside **all** custom
+validators, which hooks up into the global validation logger. It is
+included by default in the transpiled code.
