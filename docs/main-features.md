@@ -12,13 +12,13 @@ These definitions are to be kept as easily versionable and maintainable files, w
 
 ### Main building blocks 🧱
 
-The two main objects in Phaistos are: **Transpiler** and **Validator**.
+The two main objects in Phaistos are: **Transpiler** and **Manager**.
 
 The **Transpiler** is responsible for converting the schema manifest into a Pydantic model, which is a Python data validation library that allows you to define data schemas using Python type annotations.
 
 This object is a **stateless** interface, meaning that it does not store any information about the schema, but rather acts as a "pure function" that takes the schema manifest as input and returns the Pydantic model as output.
 
-**Validator** is a manager that automatically discovers and loads custom schemas from a specified directory, and then uses the **Transpiler** to convert them into Pydantic models. Then, it allows used to validate data against these models,
+**Manager** is a manager that automatically discovers and loads custom schemas from a specified directory, and then uses the **Transpiler** to convert them into Pydantic models. Then, it allows used to validate data against these models,
 by passing the data to the Pydantic model and the name of the schema to validate against.
 
 ### General workflow 🌊
@@ -76,3 +76,18 @@ So instead of trying to dance around serialization limitations of complex
 classes in Python (which is a whole different can of worms), we can
 quickly install Phaistos in the project and start using it to validate
 data against the defined schemas - which can be leveraged in distributed ETL pipelines (e.g. within Apache Spark workers), APIs, configurations, and more.
+
+#### Minor nitpicks 🤏
+
+Below is the section that lists little annoyances that Phaistos tries to solve:
+
+1. Normally, Pydantic will **not run** field validators for any attributes
+that were used in the previously failed model validator. So, this is slightly
+annoying if those two actions can be considered separately. Phaistos
+solves this by running all field validators, regardless of the previous
+validation results **and** model validator on its own.
+2. Instead of referencing model fields in the custom validators by
+abstract names, Phaistos allows you to reference them by their actual
+names. So, in the custom validator, you can use `name` instead of `value`
+for a field that is named ... `name`! This makes the code more readable
+and maintainable.
