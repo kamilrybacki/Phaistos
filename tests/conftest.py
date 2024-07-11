@@ -77,6 +77,14 @@ def faulty_nested_config_file() -> phaistos.typings.SchemaInputFile:
         os.path.join(consts.TESTS_ASSETS_PATH, 'faulty_nested.yaml')
     )
 
+
+@pytest.fixture(scope='session')
+def faulty_double_nested_config_file() -> phaistos.typings.SchemaInputFile:
+    return __open_yaml_file(
+        os.path.join(consts.TESTS_ASSETS_PATH, 'faulty_double_nested.yaml')
+    )
+
+
 @pytest.fixture(scope='session')
 def valid_config_file() -> phaistos.typings.SchemaInputFile:
     return __open_yaml_file(

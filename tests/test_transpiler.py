@@ -6,8 +6,6 @@ import pytest
 import conftest  # type: ignore
 import consts  # type: ignore
 
-import pydantic_core
-
 from phaistos.transpiler import Transpiler
 from phaistos.schema import TranspiledSchema
 from phaistos.consts import BLOCKED_MODULES
@@ -38,8 +36,8 @@ def _check_constraints(
     logger
 ) -> None:
     logger.info('Checking constraints for invalid data: %s', data)
-    with pytest.raises(pydantic_core.ValidationError):
-        transpiled_schema(**data)
+    transpiled_schema(**data)
+    assert transpiled_schema.validation_errors  # type: ignore
 
 
 def _extract_transpiled_validators(

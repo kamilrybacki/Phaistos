@@ -19,6 +19,7 @@
 
 FIELD_VALIDATOR_VALUE_COPY_TEMPLATE = """
   globals()[info.field_name] = value
+  locals()[info.field_name] = value
 """
 
 LOGGER_TEMPLATE = """
@@ -45,6 +46,7 @@ import typing
 def %(name)s(%(first_argument)s, %(extra_arguments)s info):
 {LOGGER_TEMPLATE}
   globals().update(info)
+  locals().update(info)
   %(source)s
   return %(first_argument)s
 """

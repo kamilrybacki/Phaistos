@@ -98,8 +98,10 @@ class TranspiledModelData(typing.TypedDict):
         properties (dict[str, typing.Any]): A dictionary of transpiled properties.
         context (dict[str, typing.Any]): A dictionary of the context of the model, used during validation.
     """
+    name: str
     validators: list[CompiledValidator]
     properties: dict[str, typing.Any]
+    parent: typing.Any
     context: typing.NotRequired[dict[str, typing.Any]]
     global_validator: typing.NotRequired[typing.Any]
 
@@ -115,10 +117,13 @@ class ValidationResults:
         errors (list[FieldValidationErrorInfo]): A list of field validation errors.
         data (dict): The data that was validated.
     """
-    valid: bool
     schema: dict
     errors: list[FieldValidationErrorInfo]
     data: dict = dataclasses.field(default_factory=dict)
+    valid: bool = dataclasses.field(init=False)
+
+    def __post_init__(self) -> None:
+        self.valid = not self.errors
 
     def __str__(self) -> str:
         is_data_valid = 'Yes' if self.valid else 'No'

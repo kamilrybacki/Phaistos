@@ -1,5 +1,6 @@
 # pylint: disable=protected-access, too-few-public-methods
 from __future__ import annotations
+import copy
 import dataclasses
 import logging
 import pydoc
@@ -45,7 +46,7 @@ class Transpiler:
         return ValidationFunctionsCompiler.compile(prop)
 
     @classmethod
-    def make_property(cls, prop: ParsedProperty) -> TranspiledProperty:
+    def make_property(cls, prop: ParsedProperty, owner: type[TranspiledSchema] | None = None) -> TranspiledProperty:
         """
         Method to transpile a property into a Pydantic model field.
 
@@ -68,24 +69,27 @@ class Transpiler:
                 constraints=adjusted_data['data'].get('constraints', {})
             )
         return TranspiledProperty(
-            type=cls.make_schema({
-                'name': prop['name'],
-                'version': prop['data'].get('version', '...'),  # type: ignore
-                'description': prop['data'].get('description', ''),
-                'properties': prop['data']['properties'],
-                'context': prop['data'].get('context', {}),  # type: ignore
-                'validator': prop['data'].get('validator', RawValidator({
-                    'source': 'pass',
-                    'mode': 'before'
-                }))
-            }),
+            type=cls.make_schema(
+                schema={
+                    'name': prop['name'],
+                    'version': prop['data'].get('version', '...'),  # type: ignore
+                    'description': prop['data'].get('description', ''),
+                    'properties': prop['data']['properties'],
+                    'context': prop['data'].get('context', {}),  # type: ignore
+                    'validator': prop['data'].get('validator', RawValidator({
+                        'source': 'pass',
+                        'mode': 'before'
+                    }))
+                },
+                parent=owner
+            ),
             default=...,
             validator=cls.make_validator(prop),
             constraints={}
         )
 
     @classmethod
-    def make_properties(cls, properties: list[ParsedProperty]) -> TranspiledModelData:
+    def make_properties(cls, properties: list[ParsedProperty], properties_parent: type[TranspiledSchema]) -> TranspiledModelData:
         """
         Method to read a list of properties and transpile them into a Pydantic model fields.
 
@@ -96,7 +100,7 @@ class Transpiler:
             TranspiledModelData: A dictionary with the transpiled properties.
         """
         transpiled_model_data: dict[str, TranspiledProperty] = {
-            prop['name']: cls.make_property(prop)
+            prop['name']: cls.make_property(prop, properties_parent)
             for prop in properties
         }
         properties_annotations: typing.Dict[str, typing.Any] = {
@@ -109,17 +113,19 @@ class Transpiler:
             if isinstance(property_data, type)
         }
         return TranspiledModelData(
+            name=properties_parent.transpilation_name,
             validators=[
                 validator
                 for property_data in transpiled_model_data.values()
                 if not isinstance(property_data, type)
                 if (validator := property_data.get('validator')) is not None
             ],
-            properties=properties_annotations
+            properties=properties_annotations,
+            parent=None
         )
 
     @classmethod
-    def make_schema(cls, schema: SchemaInputFile) -> type[TranspiledSchema]:
+    def make_schema(cls, schema: SchemaInputFile, parent: type[TranspiledSchema] | None = None) -> type[TranspiledSchema]:
         """
         Transpile a schema into a Pydantic model.
 
@@ -131,14 +137,28 @@ class Transpiler:
         """
         cls._logger.info(f"Transpiling schema: {schema['name']}")
 
-        transpilation = cls.make_properties([
-            ParsedProperty(
-                name=property_name,
-                data=property_data
-            )
-            for property_name, property_data in schema['properties'].items()
-        ])
+        class _Schema(TranspiledSchema):
+            version: typing.ClassVar[str]
+            description: typing.ClassVar[str]
 
+        _Schema.version = schema.get('version', '...')
+        _Schema.description = schema.get('description', '')
+        _Schema.__name__ = schema['name']
+        _Schema.__qualname__ = schema['name']
+        _Schema.transpilation_name = schema['name']
+
+        transpilation = cls.make_properties(
+            properties=[
+                ParsedProperty(
+                    name=property_name,
+                    data=property_data
+                )
+                for property_name, property_data in schema['properties'].items()
+            ],
+            properties_parent=_Schema
+        )
+
+        transpilation['parent'] = parent
         transpilation['context'] = schema.get('context', {})  # type: ignore
 
         if 'validator' in schema:
@@ -152,8 +172,6 @@ class Transpiler:
             })
             transpilation['global_validator'] = global_model_validator_function
 
-        print(transpilation)
-
         transpiled_property_names = ', '.join([
             key
             for key in transpilation['properties'].keys()
@@ -161,14 +179,7 @@ class Transpiler:
         ])
         cls._logger.info(f"Schema {schema['name']} has been transpiled successfully. Transpiled properties: {transpiled_property_names}")
 
-        class _Schema(TranspiledSchema):
-            version: typing.ClassVar[str] = schema.get('version', '')
-            description: typing.ClassVar[str] = schema.get('description', '')
-
-        return _Schema.compile(
-            schema['name'],
-            transpilation
-        )
+        return _Schema.compile(transpilation)
 
     @classmethod
     def supress_logging(cls) -> None:

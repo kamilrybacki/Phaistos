@@ -107,6 +107,7 @@ def test_manual_schema_loading() -> None:
         'valid_config_file',
         'faulty_flat_config_file',
         'faulty_nested_config_file',
+        'faulty_double_nested_config_file',
     ],
 )
 def test_schema_validation_workflow(config_filename: str, logger, request) -> None:
@@ -128,15 +129,14 @@ def test_schema_validation_workflow(config_filename: str, logger, request) -> No
     os.environ['PHAISTOS__SCHEMA_PATH'] = temporary_schema_directory
 
     with conftest.schema_discovery(state=False):
-        validator: phaistos.Validator = phaistos.Validator.start()
-        validator.load_schema(config_file)
         data_from_schema = conftest.create_mock_schema_data(
             applied_properties=config_file['properties']
         )
 
+        validator: phaistos.Validator = phaistos.Validator.start()
         results = validator.validate(
             data=data_from_schema,
-            schema=config_file['name']
+            schema=validator.load_schema(config_file)
         )
 
         logger.info(f'Validation results:\n{results}')

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import copy
 import typing
 
 import pydantic
@@ -14,17 +15,30 @@ class TranspiledSchema(pydantic.BaseModel):
     """
     A Pydantic model that represents a transpiled schema.
     """
-    _context: dict[str, typing.Any] = pydantic.PrivateAttr({})
+    transpilation_name: typing.ClassVar[str] = ''
     global_validator: typing.ClassVar[
         typing.Callable[[TranspiledSchema, typing.Any], None] | None
-    ]
-    global_validation_error: typing.ClassVar[FieldValidationErrorInfo | None] = None
+    ] = None
+    context: typing.ClassVar[
+        dict[str, typing.Any]
+    ] = {}
+    _validation_errors: typing.ClassVar[
+        list[FieldValidationErrorInfo]
+    ] = []
+    parent: typing.ClassVar[type[TranspiledSchema]]
+
+    # pylint: disable=protected-access
+    @property
+    def validation_errors(self) -> list[FieldValidationErrorInfo]:
+        return self.parent._validation_errors
 
     # pylint: disable=protected-access
     @classmethod
-    def compile(cls, name: str, model_data: TranspiledModelData) -> type[TranspiledSchema]:
+    def compile(cls, model_data: TranspiledModelData) -> type[TranspiledSchema]:
+        if not model_data.get('parent'):
+            cls._validation_errors = []
         schema: type[TranspiledSchema] = pydantic.create_model(  # type: ignore
-            name,
+            model_data['name'],
             __base__=TranspiledSchema,
             __validators__={
                 validator['name']: validator['method']
@@ -33,9 +47,18 @@ class TranspiledSchema(pydantic.BaseModel):
             },
             **model_data['properties']
         )
-        schema._context = model_data.get('context', {})  # type: ignore
+        schema.parent = model_data.get('parent') or copy.deepcopy(cls)
+        cls._rename_schema(schema, model_data['name'])
+
+        schema.context = model_data.get('context', {})  # type: ignore
         schema.global_validator = model_data.get('global_validator')
         return schema
+
+    @classmethod
+    def _rename_schema(cls, schema: type[TranspiledSchema], name: str) -> None:
+        for field in ['__name__', '__qualname__', 'transpilation_name']:
+            if hasattr(schema, field):
+                setattr(schema, field, name)
 
     # pylint: disable=no-self-argument, unused-variable, super-init-not-called, not-callable
     def __init__(self, **data: typing.Any) -> None:  # type: ignore
@@ -44,16 +67,29 @@ class TranspiledSchema(pydantic.BaseModel):
             passed the context to the validator.
         """
         __tracebackhide__ = True
+        collected_errors: list[FieldValidationErrorInfo] = []
         try:
-            if self.__class__.global_validator:
-                self.__class__.global_validator(data)  # type: ignore
+            if self.global_validator:
+                self.global_validator(data)  # type: ignore
         except Exception as validator_exception:  # pylint: disable=broad-except
-            self.__class__.global_validation_error = FieldValidationErrorInfo(
-                name=self.__class__.__name__,
-                message=str(validator_exception)
+            collected_errors.append(
+                FieldValidationErrorInfo(
+                    name=self.__class__.__name__,
+                    message=str(validator_exception)
+                )
             )
-        self.__pydantic_validator__.validate_python(
-            data,
-            self_instance=self,
-            context=self._context
-        )
+        try:
+            self.__pydantic_validator__.validate_python(
+                data,
+                self_instance=self,
+                context=self.context
+            )
+        except pydantic.ValidationError as validation_error:
+            collected_errors.extend([
+                FieldValidationErrorInfo(
+                    name=str(error['loc'][0]) if error['loc'] else validation_error.title,
+                    message=error['msg']
+                )
+                for error in validation_error.errors()
+            ])
+        self.parent._validation_errors += self._validation_errors + collected_errors

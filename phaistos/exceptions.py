@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 
 
 class ForbiddenModuleUseInValidator(ImportError):
@@ -6,7 +7,7 @@ class ForbiddenModuleUseInValidator(ImportError):
         super().__init__(*args, name=name, path=path)
 
 
-class SchemaParsingException(Exception):
+class SchemaLoadingException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
@@ -28,9 +29,24 @@ class FieldValidationErrorInfo:
     Attributes:
         name (str): The name of the field.
         message (str): The message of the field.
+        timestamp (datetime.datetime): The timestamp of the error.
     """
     name: str
     message: str
+    timestamp: datetime.datetime = dataclasses.field(
+        default_factory=datetime.datetime.now
+    )
 
     def __str__(self) -> str:
-        return f'{self.name}: {self.message}'
+        formatted_timestamp = self.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        return f'{formatted_timestamp} {self.name}: {self.message}'
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, FieldValidationErrorInfo):
+            return False
+        return (
+            self.name == other.name and self.message == other.message
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.message))

@@ -3,7 +3,9 @@ underscore_in_name: &underscore_in_name
 _valid: false
 _expected_failures:
   - NestedSchema
+  - uuid
   - FaultyNested
+  - DoubleNestedSchema
   - table
 version: v1
 name: FaultyNested
@@ -12,6 +14,23 @@ properties:
   NestedSchema:
     description: Nested schema
     properties:
+      DoubleNestedSchema:
+        description: Double nested schema
+        properties:
+          uuid:
+            type: str
+            description: Hostname of the server
+            default: _uuid
+            validator: |
+              if uuid.startswith('_'):
+                raise ValueError('UUID cannot start with underscore')
+          tag:
+            type: str
+            description: Tag of the server
+            default: _tag
+        validator: |
+          if tag.startswith('_'):
+            raise ValueError('Tag cannot start with underscore')
       host:
         type: str
         description: Hostname of the server
