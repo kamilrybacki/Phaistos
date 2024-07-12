@@ -132,4 +132,6 @@ class SchemaInstancesFactory:
         )
 
     def build(self, data: dict[str, typing.Any]) -> TranspiledSchema | None:
-        return self._model(**data) if self.validate(data).valid else None
+        self.errors = []
+        validation = self.validate(data)
+        return self._model(**data) if validation.valid else None

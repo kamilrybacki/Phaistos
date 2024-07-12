@@ -185,6 +185,22 @@ def test_if_context_is_passed_during_validation() -> None:
         assert not manager.validate(**MOCK_PERSON).valid  # type: ignore
 
 
+def test_repeated_validations(faulty_flat_config_file) -> None:
+    with conftest.schema_discovery(state=False):
+        manager = phaistos.Manager.start()
+        schema_name = manager.load_schema(faulty_flat_config_file)
+        mock_data = conftest.create_mock_schema_data(faulty_flat_config_file['properties'])
+
+        first_validation = manager.validate(data=mock_data, schema=schema_name)
+        assert not first_validation.valid  # type: ignore
+
+        number_of_errors = len(first_validation.errors)
+
+        second_validation = manager.validate(data=mock_data, schema=schema_name)
+        assert not second_validation.valid  # type: ignore
+        assert len(second_validation.errors) == number_of_errors
+
+
 def test_constructor_call_for_model(faulty_flat_config_file) -> None:
     with conftest.schema_discovery(state=False):
         manager = phaistos.Manager.start()
