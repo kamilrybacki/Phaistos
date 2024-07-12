@@ -22,14 +22,14 @@ EXAMPLE_MOCKUMENTS = {
 
 
 def test_model_instances_creation():
-    validator = phaistos.Validator.start()
+    manager = phaistos.Manager.start()
 
     # Get the Mockument data model
-    mockument = validator.get_model('Mockument')
+    mockument_factory = manager.get_factory('Mockument')
 
     # Create the valid mockument entry
-    valid_mockument = mockument(
-        **EXAMPLE_MOCKUMENTS['valid']
+    valid_mockument = mockument_factory.build(
+        EXAMPLE_MOCKUMENTS['valid']
     )
 
     # Show the valid mockument entry
@@ -37,8 +37,8 @@ def test_model_instances_creation():
 
     # Create the invalid mockument entry
     try:
-        _ = mockument(
-            **EXAMPLE_MOCKUMENTS['invalid']
+        _ = mockument_factory.build(
+            EXAMPLE_MOCKUMENTS['invalid']
         )
     except pydantic.ValidationError as wrong_data:
         logging.error(f'Invalid mockument data: {wrong_data}')

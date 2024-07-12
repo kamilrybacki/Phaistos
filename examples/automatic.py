@@ -82,10 +82,10 @@ EXAMPLE_MOCKUMENTS = {
 
 
 def run_example() -> None:
-    validator = phaistos.Validator.start()
+    manager = phaistos.Manager.start()
 
     # Check the valid database configuration and mockument
-    db_config_validation_results = validator.against_schema(
+    db_config_validation_results = manager.validate(
         EXAMPLE_DATABASE_CONFIGS['valid'],
         'MockumentDatabaseConfig'  # Name from the YAML file
     )
@@ -93,7 +93,7 @@ def run_example() -> None:
     logging.info(f'Database {EXAMPLE_DATABASE_CONFIGS["valid"]} configuration is valid')
 
     # Check the valid mockument entry data
-    mockument_validation_results = validator.against_schema(
+    mockument_validation_results = manager.validate(
         EXAMPLE_MOCKUMENTS['valid'],
         'Mockument'  # Name from the YAML file
     )
@@ -101,7 +101,7 @@ def run_example() -> None:
     logging.info(f'Mockument {EXAMPLE_MOCKUMENTS["valid"]} data is valid')
 
     # Check the invalid database configuration and mockument
-    db_config_validation_results = validator.against_schema(
+    db_config_validation_results = manager.validate(
         EXAMPLE_DATABASE_CONFIGS['invalid'],
         'MockumentDatabaseConfig'  # Name from the YAML file
     )
@@ -109,7 +109,7 @@ def run_example() -> None:
     logging.error(f'Database {EXAMPLE_DATABASE_CONFIGS["invalid"]} configuration is invalid')
 
     # Check the invalid mockument entry data
-    mockument_validation_results = validator.against_schema(
+    mockument_validation_results = manager.validate(
         EXAMPLE_MOCKUMENTS['invalid'],
         'Mockument'  # Name from the YAML file
     )

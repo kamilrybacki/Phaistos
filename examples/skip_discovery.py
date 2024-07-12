@@ -45,12 +45,12 @@ BAD_MOCKUMENT = {
 
 
 def validate_mockument_data(
-    initialized_validator: phaistos.Validator,
+    initialized_manager: phaistos.Manager,
     data: typing.Any,
     name: str
 ) -> None:
     logging.info(f'Validating data {data} against schema: {name}')
-    result = initialized_validator.against_schema(data, name)
+    result = initialized_manager.validate(data, name)
     logging.info('Validation result:')
     logging.info(result)
 
@@ -59,15 +59,15 @@ if __name__ == '__main__':
     # Disable schema discovery by setting the environment variable
     os.environ['PHAISTOS__DISABLE_SCHEMA_DISCOVERY'] = '1'
 
-    validator = phaistos.Validator.start()
-    schema_id = validator.load_schema(SCHEMA_TO_USE)
+    manager = phaistos.Manager.start()
+    schema_id = manager.load_schema(SCHEMA_TO_USE)
     logging.info(f'Loaded schema with ID: {schema_id}')
 
     for example_data in [
         GOOD_MOCKUMENT,
         BAD_MOCKUMENT
     ]:
-        validate_mockument_data(validator, example_data, schema_id)
+        validate_mockument_data(manager, example_data, schema_id)
 
     # Clean up the environment variable
     del os.environ['PHAISTOS__DISABLE_SCHEMA_DISCOVERY']
