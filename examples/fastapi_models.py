@@ -43,12 +43,41 @@ def index():
     <body>
     <h1>FastAPI + Phaistos</h1>
     <p>
-        Visit <a href="/mockument">/mockument</a> to see the Phaistos schema in action!
+        Visit <a href="/mockuments">/mockuments</a> to see the Phaistos schema in action!
     </p>
     """
 
 
-def build_mockument_data(mockument_id: int):
+@app.get("/mockuments", response_class=fastapi.responses.HTMLResponse)
+def mockument():
+    mockuments_list = '<br>'.join([
+        f'<a href="/mockuments/{mockument_id}">Mockument {mockument_id}</a>'
+        for mockument_id in MOCKUMENTS
+    ])
+    return f"""
+    <html>
+    <body>
+    <h1>Mockument</h1>
+    <p>
+        {mockuments_list}
+    </p>
+    """
+
+
+def build_mockument_data(mockument_id: int) -> phaistos.schema.TranspiledSchema:
+    """
+    Build mockument data from the mockument ID.
+    Injected as a dependency to the FastAPI endpoint.
+
+    Args:
+        mockument_id (int): The mockument ID (taken from the URL query params).
+
+    Returns:
+        phaistos.schema.TranspiledSchema: The built mockument data.
+
+    Raises:
+        fastapi.HTTPException: If the mockument ID is not found or the data is invalid.
+    """
     if not (mockument_data := MOCKUMENTS.get(mockument_id)):
         raise fastapi.HTTPException(status_code=404, detail="Mockument not found")
     if validated_data := response_model.build(mockument_data):
@@ -64,18 +93,21 @@ def build_mockument_data(mockument_id: int):
     )
 
 
-@app.get("/mockument/{mockument_id}")
+@app.get("/mockuments/{mockument_id}")
 def get_mockument(
     mockument: typing.Annotated[
         type[phaistos.schema.TranspiledSchema],
-        fastapi.Depends(build_mockument_data)
+        fastapi.Depends(build_mockument_data)  # Inject the built mockument data
     ]
 ):
+    """
+    Get a mockument by its ID.
+    """
     return mockument
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO)  # Set logging level to INFO
     uvicorn.run(
         app,
         host="localhost",
