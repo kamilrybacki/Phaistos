@@ -1,0 +1,30 @@
+version: v1
+name: Mockument
+description: Mock document data structure
+properties:
+  name:
+    type: str
+    description: Document name
+    validator: |
+      if value[0].islower():
+        raise ValueError("Name must start with an uppercase letter")
+      if len(value) < 3:
+        raise ValueError("Name must be at least 3 characters long")
+  year:
+    type: int
+    description: Document year
+    validator: |
+      import datetime
+      current_year = datetime.datetime.now().year
+      if value < 1900:
+        raise ValueError("Year must be at least 1900")
+      if value > current_year:
+        raise ValueError("Year must be at most the current year")
+  rating:
+    type: float
+    description: Document rating
+    validator: |
+      if value < 0:
+        raise ValueError("Rating must be at least 0")
+      if value > 10:
+        raise ValueError("Rating must be at most 10")

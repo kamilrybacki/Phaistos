@@ -1,0 +1,18 @@
+version: v1
+name: MockumentDatabaseConfig
+description: Mock database configuration
+properties:
+  login:
+    type: str
+    description: Database login
+    default: anonymous
+    validator: |
+      if len(value) < 3:
+        raise ValueError("Login must be at least 3 characters long")
+  password:
+    type: str
+    description: Database password
+    default: ""
+    validator: |
+      if len(value) < 3:
+        raise ValueError("Password must be at least 8 characters long")
