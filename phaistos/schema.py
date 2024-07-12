@@ -125,13 +125,14 @@ class SchemaInstancesFactory:
             *set(self._model.parent._validation_errors)  # pylint: disable=protected-access
         ]
         self.errors = collected_errors
-        return ValidationResults(
+        validation = ValidationResults(
             schema=self._model.model_json_schema(),
             errors=collected_errors,
             data=data
         )
+        self.errors = []
+        return validation
 
     def build(self, data: dict[str, typing.Any]) -> TranspiledSchema | None:
-        self.errors = []
         validation = self.validate(data)
         return self._model(**data) if validation.valid else None
