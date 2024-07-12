@@ -21,12 +21,12 @@ MOCKUMENTS = {
         "year": 2021,
         "rating": 10.0,
     },
-    2: {
-        "name": "The Mockument 2",
-        "year": 2022,
+    2: {  # This one has no name and the year is in future
+        "name": "",
+        "year": 2025,
         "rating": 9.0,
     },
-    3: {  # This one is invalid
+    3: {  # This one has only invalid rating
         "name": "The Mockument 3",
         "year": 2023,
         "rating": -1.0,
@@ -52,8 +52,13 @@ def mockument(mockument_id: int):
         raise fastapi.HTTPException(status_code=404, detail="Mockument not found")
     if validated_data := response_model.build(mockument_data):
         return validated_data
-    print(response_model.errors)
-    raise fastapi.HTTPException(status_code=400, detail=f"Invalid data: {response_model.errors}")
+    raise fastapi.HTTPException(
+        status_code=400,
+        detail=f"Invalid data: {'; '.join([
+            str(error)
+            for error in response_model.errors
+        ])}"
+    )
 
 
 if __name__ == "__main__":
