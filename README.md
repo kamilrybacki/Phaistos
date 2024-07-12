@@ -35,7 +35,7 @@ In the show of unprecedented far-reaching, the resulting data models from Phaist
 
 ## Examples
 
-The [`examples` branch] contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
+The [`examples` folder] contains scripts and schemas that demonstrate how to use Phaistos to define and validate data models. The examples are written in Python and are intended to be run from the command line.
 
 More information about the examples can be found in the [examples README].
 
@@ -83,6 +83,6 @@ This project is licensed under the GNU General Public License Version 3 (GPLv3).
 
 [documentation]: https://phaistos.readthedocs.io/en/latest/
 [Phaistos Disc]: https://en.wikipedia.org/wiki/Phaistos_Disc
-[examples README]: https://github.com/kamilrybacki/Phaistos/blob/examples/README.md
-[`examples` branch]: https://github.com/kamilrybacki/Phaistos/tree/examples
+[examples README]: ./examples/README.md
+[`examples` folder]: ./examples
 [open an issue]: https://github.com/your-repository/issues
