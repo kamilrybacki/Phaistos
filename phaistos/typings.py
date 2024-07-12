@@ -123,7 +123,7 @@ class ValidationResults:
     valid: bool = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
-        self.valid = not self.errors
+        self.valid = len(self.errors) == 0
 
     def __str__(self) -> str:
         is_data_valid = 'Yes' if self.valid else 'No'
