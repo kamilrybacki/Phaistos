@@ -1,4 +1,6 @@
 import os
+import logging
+import typing
 
 import fastapi
 import uvicorn
@@ -46,12 +48,13 @@ def index():
     """
 
 
-@app.get("/mockument/{mockument_id}")
-def mockument(mockument_id: int):
+def build_mockument_data(mockument_id: int):
     if not (mockument_data := MOCKUMENTS.get(mockument_id)):
         raise fastapi.HTTPException(status_code=404, detail="Mockument not found")
     if validated_data := response_model.build(mockument_data):
+        manager.logger.info(f"Built mockument data: {validated_data}")
         return validated_data
+    manager.logger.info(f"Failed to build mockument data: {mockument_data}")
     raise fastapi.HTTPException(
         status_code=400,
         detail=f"Invalid data: {'; '.join([
@@ -61,5 +64,20 @@ def mockument(mockument_id: int):
     )
 
 
+@app.get("/mockument/{mockument_id}")
+def get_mockument(
+    mockument: typing.Annotated[
+        type[phaistos.schema.TranspiledSchema],
+        fastapi.Depends(build_mockument_data)
+    ]
+):
+    return mockument
+
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=42069)
+    logging.basicConfig(level=logging.INFO)
+    uvicorn.run(
+        app,
+        host="localhost",
+        port=42069,
+    )
