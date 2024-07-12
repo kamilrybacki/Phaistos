@@ -68,6 +68,8 @@ class TranspiledSchema(pydantic.BaseModel):
             passed the context to the validator.
         """
         __tracebackhide__ = True
+        if self.parent.transpilation_name == self.transpilation_name:
+            self.parent._validation_errors = []
         collected_errors: list[FieldValidationErrorInfo] = []
         try:
             if self.global_validator:
@@ -124,6 +126,7 @@ class SchemaInstancesFactory:
         collected_errors = [
             *set(self._model.parent._validation_errors)  # pylint: disable=protected-access
         ]
+        self.errors = collected_errors
         return ValidationResults(
             schema=self._model.model_json_schema(),
             errors=collected_errors,
@@ -131,5 +134,4 @@ class SchemaInstancesFactory:
         )
 
     def build(self, data: dict[str, typing.Any]) -> TranspiledSchema | None:
-        validation = self.validate(data)
-        return self._model(**data) if validation.valid else None
+        return self._model(**data) if self.validate(data).valid else None
