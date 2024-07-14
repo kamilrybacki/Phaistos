@@ -18,12 +18,14 @@ COLLECTION_TYPE_REGEX = r'(?P<collection>\w+)\[(?P<item>\w+)\]'
 # function during compilation
 BLOCKED_MODULES = ['os', 'sys', 'importlib', 'pydoc', 'subprocess', 'pickle', 'shutil', 'tempfile', 'inspect', 'shlex']
 
-NULL_MODULE = types.ModuleType('BLOCKED')
-setattr(NULL_MODULE, 'LOCK', True)
-setattr(NULL_MODULE, '__getattr__', phaistos.utils.block)
+
+class NullModule(types.ModuleType):
+    LOCK = True
+    __getattr__ = phaistos.utils.block
+
 
 ISOLATION_FROM_UNWANTED_LIBRARIES = {
-    module_name: NULL_MODULE
+    module_name: NullModule
     for module_name in BLOCKED_MODULES
 } if bool(
     os.environ.get('PHAISTOS__ENABLE_UNSAFE_VALIDATORS', 'False')
