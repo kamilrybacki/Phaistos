@@ -1,10 +1,27 @@
 ## Manual manifest loading
 
-There is an option to disable automatic schema discovery to then
+There are two options to disable automatic schema discovery to then
 load the schema manifests manually, either with data read from a file
 or by constructing the schema directly in the code.
 
-To do this, set the `PHAISTOS__DISABLE_SCHEMA_DISCOVERY` environment variable
+First is by using optional `discover` argument of the `Manager.start`
+class method, which by default looks if the `PHAISTOS__DISABLE_SCHEMA_DISCOVERY`
+environment variable is set to any value. If yes: the automatic schema
+discovery is disabled.
+
+```python
+from phaistos import Manager
+
+# Initialize the manager
+manager = Manager.start(discover=False)
+```
+
+This will result with a `Manager` object that has no schemas loaded
+(its `_schemas` attribute is an empty dictionary). The schemas can
+be then loaded manually, using `load_schema` method.
+
+The second option is to disable the automatic schema discovery via aforementioned
+environment variable. To do this, set the `PHAISTOS__DISABLE_SCHEMA_DISCOVERY` environment variable
 to any value.
 
 ```bash
@@ -21,7 +38,7 @@ Here is an example of how you can load a schema manifest from a file:
 from phaistos import Manager
 
 # Initialize the manager
-manager = Manager.start()
+manager = Manager.start()  # manager._schemas is now equal to {}
 
 # Create schema manually
 
