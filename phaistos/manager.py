@@ -16,6 +16,7 @@ from phaistos.exceptions import SchemaLoadingException
 
 
 class Manager:
+    discover: bool = True
     _schemas: dict[str, SchemaInstancesFactory] = {}
     logger: typing.ClassVar[logging.Logger] = MANAGER_LOGGER
 
@@ -28,7 +29,12 @@ class Manager:
         return self.get_factory(schema).validate(data)
 
     @classmethod
-    def start(cls) -> Manager:
+    def start(
+        cls,
+        discover: bool = bool(
+            os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY')
+        )
+    ) -> Manager:
         if cls.__started and cls.__last_used_schemas_dir != os.environ.get('PHAISTOS__SCHEMA_PATH', ''):
             cls.logger.info('Schema path has changed. Reloading schemas.')
             cls.__instance = None
@@ -37,15 +43,15 @@ class Manager:
             cls.logger.info('Starting Phaistos manager!')
             cls.__started = True
             cls.__last_used_schemas_dir = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
-            cls.__instance = cls()
+            cls.__instance = cls(discover)
         return cls.__instance
 
-    def __init__(self) -> None:
+    def __init__(self, discover: bool) -> None:
         if not self.__started:
             raise RuntimeError(
                 'Validator must be started using Manager.start()'
             )
-        if not os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY'):
+        if discover:
             self._schemas = self.get_available_schemas()
 
     def get_factory(self, name: str) -> SchemaInstancesFactory:

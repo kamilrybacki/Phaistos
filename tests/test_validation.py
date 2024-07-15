@@ -70,9 +70,15 @@ def test_schema_discovery_exceptions(
     )
 
     with pytest.raises(exception):
-        phaistos.Manager.start()
+        phaistos.Manager.start(discover=True)
     logger.info(f'Successfully tested schema discovery exception: {exception.__name__}')
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_schema_path
+
+
+def test_schema_discovery_disabled(logger) -> None:
+    logger.info('Testing schema discovery disabled')
+    manager = phaistos.Manager.start(discover=False)
+    assert manager._schemas == {}  # pylint: disable=protected-access
 
 
 def test_manual_schema_loading() -> None:
