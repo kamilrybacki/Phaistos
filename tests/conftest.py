@@ -13,6 +13,12 @@ import phaistos.sources
 import phaistos.typings
 
 
+# pylint: disable=protected-access
+@pytest.fixture(autouse=True)
+def reset_manager() -> None:
+    phaistos.Manager._purge()
+
+
 def create_mock_schema_data(applied_properties: dict[str, phaistos.typings.RawSchemaProperty]) -> dict[str, typing.Any]:
     data = {}
     for property_name, property_data in applied_properties.items():

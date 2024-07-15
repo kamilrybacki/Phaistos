@@ -16,13 +16,14 @@ from phaistos.exceptions import SchemaLoadingException
 
 
 class Manager:
-    discover: bool = True
-    _schemas: dict[str, SchemaInstancesFactory] = {}
+    discover: bool
     logger: typing.ClassVar[logging.Logger] = MANAGER_LOGGER
 
+    _current_schemas_path: typing.ClassVar[str] = ''
+    _schemas: dict[str, SchemaInstancesFactory] = {}
+
+    _started: typing.ClassVar[bool] = False
     __instance: typing.ClassVar[Manager | None] = None
-    __started: typing.ClassVar[bool] = False
-    __last_used_schemas_dir: typing.ClassVar[str] = ''
 
     def validate(self, data: dict, schema: str) -> ValidationResults:
         self.logger.info(f'Validating data against schema: {schema}')
@@ -31,23 +32,27 @@ class Manager:
     @classmethod
     def start(
         cls,
-        discover: bool = bool(
-            os.environ.get('PHAISTOS__DISABLE_SCHEMA_DISCOVERY')
-        )
+        discover: bool = True,
+        schemas_path: str | None = None
     ) -> Manager:
-        if cls.__started and cls.__last_used_schemas_dir != os.environ.get('PHAISTOS__SCHEMA_PATH', ''):
-            cls.logger.info('Schema path has changed. Reloading schemas.')
-            cls.__instance = None
-            cls.__started = False
-        if not cls.__instance:
+        cls._current_schemas_path = schemas_path or os.environ['PHAISTOS__SCHEMA_PATH']  # type: ignore
+        if not cls._started:
             cls.logger.info('Starting Phaistos manager!')
-            cls.__started = True
-            cls.__last_used_schemas_dir = os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+            cls._started = True
+            if 'PHAISTOS__DISABLE_SCHEMA_DISCOVERY' in os.environ:
+                discover = False
             cls.__instance = cls(discover)
-        return cls.__instance
+        return cls.__instance  # type: ignore
+
+    @classmethod
+    def _purge(cls) -> None:
+        cls.__instance = None
+        cls._started = False
+        cls._current_schemas_path = ''
+        cls._schemas = {}
 
     def __init__(self, discover: bool) -> None:
-        if not self.__started:
+        if not self._started:
             raise RuntimeError(
                 'Validator must be started using Manager.start()'
             )
@@ -70,11 +75,10 @@ class Manager:
             )
         return self._schemas[name]
 
-    def get_available_schemas(self, path: str = '') -> dict[str, SchemaInstancesFactory]:
+    def get_available_schemas(self) -> dict[str, SchemaInstancesFactory]:
         discovered_schemas = getattr(self, '_schemas', {})
         try:
-            schemas_dir = path or os.environ['PHAISTOS__SCHEMA_PATH']
-            for schema in self.__discover_schemas(schemas_dir):
+            for schema in self.__discover_schemas(self._current_schemas_path):
                 discovered_schemas[schema.transpilation_name] = SchemaInstancesFactory(
                     name=schema.transpilation_name,
                     _model=schema

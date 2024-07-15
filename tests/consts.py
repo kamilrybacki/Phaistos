@@ -153,7 +153,7 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
 ] = [
     (
         """
-        os.environ['PHAISTOS__SCHEMA_PATH'] = '/invalid/path'
+        self._current_schemas_path = '/invalid/path'
         """,
         FileNotFoundError,
     ),
@@ -165,7 +165,7 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
         except FileNotFoundError:
             pass
         open(test_file_path, 'w').close()
-        os.environ['PHAISTOS__SCHEMA_PATH'] = test_file_path
+        self._current_schemas_path = test_file_path
         """,
         NotADirectoryError,
     ),
@@ -177,16 +177,10 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
         except FileExistsError:
             pass
         os.chmod(test_dir_path, 0o04111)
-        os.environ['PHAISTOS__SCHEMA_PATH'] = test_dir_path
+        self._current_schemas_path = test_dir_path
         """,
         PermissionError,
     ),
-    (
-        """
-        del os.environ['PHAISTOS__SCHEMA_PATH']
-        """,
-        KeyError,
-    )
 ]
 
 # Inspired by: https://supakeen.com/weblog/dangers-in-pythons-standard-library.html
