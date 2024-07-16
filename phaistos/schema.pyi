@@ -1,4 +1,3 @@
-import dataclasses
 from typing import Any, ClassVar
 
 import pydantic._internal._decorators
@@ -19,12 +18,12 @@ class TranspiledSchema(pydantic.main.BaseModel):
     def compile(cls, model_data: TranspiledModelData) -> type[TranspiledSchema]: ...
     @classmethod
     def _rename_schema(cls, schema: type[TranspiledSchema], name: str) -> None: ...
-    def __init__(self, **data: Any) -> None:
+    def __init__(self, **data) -> None:
         """
             A modified version of the Pydantic BaseModel __init__ method that
             passed the context to the validator.
         """
-    def model_post_init(self: pydantic.main.BaseModel, __context: Any) -> None:
+    def model_post_init(self: pydantic.main.BaseModel, __context) -> None:
         """This function is meant to behave like a BaseModel method to initialise private attributes.
 
             It takes context as an argument since that's what pydantic-core passes when calling it.
@@ -54,5 +53,3 @@ class SchemaInstancesFactory:
             ValidationResults: The validation results, including the schema, errors, and data.
         """
     def build(self, data: dict[str, Any]) -> TranspiledSchema | None: ...
-    def __init__(self) -> None: ...
-    def __eq__(self, other) -> bool: ...

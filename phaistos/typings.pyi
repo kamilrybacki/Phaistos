@@ -110,6 +110,3 @@ class ValidationResults:
     schema: dict
     errors: list[FieldValidationErrorInfo]
     data: dict
-    __dataclass_params__: typing.ClassVar[dataclasses._DataclassParams]
-    __dataclass_fields__: typing.ClassVar[dict]
-    __match_args__: typing.ClassVar[tuple]

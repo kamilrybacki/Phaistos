@@ -1,4 +1,5 @@
 import datetime
+import dataclasses
 
 class ForbiddenModuleUseInValidator(ImportError): ...
 
@@ -6,6 +7,7 @@ class SchemaLoadingException(Exception): ...
 
 class IncorrectFieldTypeError(ValueError): ...
 
+@dataclasses.dataclass(kw_only=True)
 class FieldValidationErrorInfo:
     name: str
     message: str
