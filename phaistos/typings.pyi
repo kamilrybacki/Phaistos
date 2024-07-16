@@ -106,13 +106,10 @@ class ValidationResults:
         errors (list[FieldValidationErrorInfo]): A list of field validation errors.
         data (dict): The data that was validated.
     """
+    valid: bool
     schema: dict
     errors: list[FieldValidationErrorInfo]
     data: dict
-    valid: bool
     __dataclass_params__: typing.ClassVar[dataclasses._DataclassParams]
     __dataclass_fields__: typing.ClassVar[dict]
     __match_args__: typing.ClassVar[tuple]
-
-    def __post_init__(self) -> None: ...
-    def __str__(self) -> str: ...
