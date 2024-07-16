@@ -16,14 +16,14 @@ from phaistos.exceptions import SchemaLoadingException
 
 
 class Manager:
-    discover: bool
     logger: typing.ClassVar[logging.Logger] = MANAGER_LOGGER
 
+    _discover: bool
     _current_schemas_path: typing.ClassVar[str] = ''
     _schemas: dict[str, SchemaInstancesFactory] = {}
-
     _started: typing.ClassVar[bool] = False
-    __instance: typing.ClassVar[Manager | None] = None
+
+    __instance: typing.Optional[Manager] = None
 
     def validate(self, data: dict, schema: str) -> ValidationResults:
         self.logger.info(f'Validating data against schema: {schema}')
@@ -33,31 +33,39 @@ class Manager:
     def start(
         cls,
         discover: bool = True,
-        schemas_path: str | None = None
+        schemas_path: str = ''
     ) -> Manager:
-        cls._current_schemas_path = schemas_path or os.environ['PHAISTOS__SCHEMA_PATH']  # type: ignore
+        cls._discover = discover
+        if 'PHAISTOS__DISABLE_SCHEMA_DISCOVERY' in os.environ:
+            cls._discover = False
         if not cls._started:
-            cls.logger.info('Starting Phaistos manager!')
-            cls._started = True
-            if 'PHAISTOS__DISABLE_SCHEMA_DISCOVERY' in os.environ:
-                discover = False
-            cls.__instance = cls(discover)
+            cls._current_schemas_path = schemas_path or os.environ.get('PHAISTOS__SCHEMA_PATH', '')
+            cls.__instance = cls()
         return cls.__instance  # type: ignore
 
     @classmethod
-    def _purge(cls) -> None:
-        cls.__instance = None
+    def __new__(
+        cls,
+        *args,
+        **kwargs
+    ) -> Manager:
+        if cls.__instance:
+            return cls.__instance
+        cls.logger.info('Starting Phaistos manager!')
+        if not cls._current_schemas_path and cls._discover:
+            raise RuntimeError(
+                'Schemas path must be provided or PHAISTOS__SCHEMA_PATH environment variable must be set'
+            )
+        cls._started = True
+        if cls._discover:
+            cls.get_available_schemas()
+        return super().__new__(cls)
+
+    @classmethod
+    def reset(cls) -> None:
         cls._started = False
         cls._current_schemas_path = ''
         cls._schemas = {}
-
-    def __init__(self, discover: bool) -> None:
-        if not self._started:
-            raise RuntimeError(
-                'Validator must be started using Manager.start()'
-            )
-        if discover:
-            self._schemas = self.get_available_schemas()
 
     def get_factory(self, name: str) -> SchemaInstancesFactory:
         """
@@ -75,27 +83,29 @@ class Manager:
             )
         return self._schemas[name]
 
-    def get_available_schemas(self) -> dict[str, SchemaInstancesFactory]:
-        discovered_schemas = getattr(self, '_schemas', {})
+    @classmethod
+    def get_available_schemas(cls) -> dict[str, SchemaInstancesFactory]:
+        discovered_schemas = getattr(cls, '_schemas', {})
         try:
-            for schema in self.__discover_schemas(self._current_schemas_path):
+            for schema in cls.__discover_schemas(cls._current_schemas_path):
                 discovered_schemas[schema.transpilation_name] = SchemaInstancesFactory(
                     name=schema.transpilation_name,
                     _model=schema
                 )
         except tuple(DISCOVERY_EXCEPTIONS.keys()) as schema_discovery_error:
-            self.logger.error(
+            cls.logger.error(
                 DISCOVERY_EXCEPTIONS.get(type(schema_discovery_error), f'Error while discovering schemas: {schema_discovery_error}')
             )
             raise schema_discovery_error
 
-        self.logger.info(
+        cls.logger.info(
             f'Available schemas: {", ".join(discovered_schemas.keys())}'
         )
         return discovered_schemas
 
-    def __discover_schemas(self, target_path: str) -> list[type[TranspiledSchema]]:
-        self.logger.info(f'Discovering schemas in: {target_path}')
+    @classmethod
+    def __discover_schemas(cls, target_path: str) -> list[type[TranspiledSchema]]:
+        cls.logger.info(f'Discovering schemas in: {target_path}')
         schemas: list[type[TranspiledSchema]] = []
         for schema in os.listdir(target_path):
             if schema.startswith('_'):
@@ -103,21 +113,22 @@ class Manager:
 
             schema_path = f'{target_path}/{schema}'
             if not os.path.isdir(schema_path):
-                self.logger.info(f'Importing schema: {schema_path}')
+                cls.logger.info(f'Importing schema: {schema_path}')
 
                 with open(schema_path, 'r', encoding='utf-8') as schema_file:
                     schema_data = yaml.safe_load(schema_file)
-                    self.load_schema(schema_data)
+                    cls.load_schema(schema_data)
                 continue
 
-            nested_schemas = self.__discover_schemas(schema_path)
+            nested_schemas = cls.__discover_schemas(schema_path)
             schemas.extend(nested_schemas)
         return schemas
 
-    def load_schema(self, schema: SchemaInputFile) -> str:
-        self.logger.info(f'Loading schema: {schema["name"]}')
+    @classmethod
+    def load_schema(cls, schema: SchemaInputFile) -> str:
+        cls.logger.info(f'Loading schema: {schema["name"]}')
         schema_class = Transpiler.make_schema(schema)
-        self._schemas[schema['name']] = SchemaInstancesFactory(
+        cls._schemas[schema['name']] = SchemaInstancesFactory(
             name=schema_class.transpilation_name,
             _model=schema_class
         )

@@ -47,10 +47,10 @@ def test_schema_discovery_exceptions(
     os.environ['PHAISTOS__SCHEMA_PATH'] = consts.TESTS_ASSETS_PATH
 
     original_get_available_schemas = copy.deepcopy(
-        phaistos.Manager.get_available_schemas  # pylint: disable=protected-access
+        phaistos.Manager.get_available_schemas
     )
 
-    def patched_get_available_schemas(self: phaistos.Manager):
+    def patched_get_available_schemas():
         patch_function = types.FunctionType(
             compile(
                 textwrap.dedent(hot_patch),
@@ -59,11 +59,11 @@ def test_schema_discovery_exceptions(
             ),
             globals={
                 **globals(),
-                'self': self
+                'cls': phaistos.Manager
             }
         )
         patch_function()  # pylint: disable=not-callable
-        return original_get_available_schemas(self)
+        return original_get_available_schemas()
 
     monkeypatch.setattr(
         phaistos.Manager,
@@ -80,7 +80,7 @@ def test_schema_discovery_exceptions(
 def test_schema_discovery_disabled(logger) -> None:
     logger.info('Testing schema discovery disabled')
     manager = phaistos.Manager.start(discover=False)
-    assert manager._schemas == {}  # pylint: disable=protected-access
+    assert not manager._schemas  # pylint: disable=protected-access
 
 
 @pytest.mark.order(3)
@@ -91,7 +91,7 @@ def test_manual_path_specification(logger) -> None:
         schemas_path=consts.TESTS_ASSETS_PATH
     )
     assert manager._current_schemas_path == consts.TESTS_ASSETS_PATH  # pylint: disable=protected-access
-    assert manager._schemas != {}  # pylint: disable=protected-access
+    assert not manager._schemas  # pylint: disable=protected-access
     os.environ['PHAISTOS__SCHEMA_PATH'] = original_path
 
 

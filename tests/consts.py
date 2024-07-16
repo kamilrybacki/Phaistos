@@ -153,7 +153,7 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
 ] = [
     (
         """
-        self._current_schemas_path = '/invalid/path'
+        cls._current_schemas_path = '/invalid/path'
         """,
         FileNotFoundError,
     ),
@@ -165,7 +165,7 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
         except FileNotFoundError:
             pass
         open(test_file_path, 'w').close()
-        self._current_schemas_path = test_file_path
+        cls._current_schemas_path = test_file_path
         """,
         NotADirectoryError,
     ),
@@ -177,7 +177,7 @@ SCHEMA_DISCOVERY_FAIL_CASES: list[
         except FileExistsError:
             pass
         os.chmod(test_dir_path, 0o04111)
-        self._current_schemas_path = test_dir_path
+        cls._current_schemas_path = test_dir_path
         """,
         PermissionError,
     ),
