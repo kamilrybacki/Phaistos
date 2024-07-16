@@ -107,7 +107,7 @@ class ValidationResults:
         errors (list[FieldValidationErrorInfo]): A list of field validation errors.
         data (dict): The data that was validated.
     """
-    valid: bool
+    valid: bool = dataclasses.field(init=False)
     schema: dict
     errors: list[FieldValidationErrorInfo]
     data: dict
