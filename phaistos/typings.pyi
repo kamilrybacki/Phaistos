@@ -96,6 +96,7 @@ class TranspiledModelData(typing.TypedDict):
     context: typing.NotRequired[dict[str, typing.Any]]
     global_validator: typing.NotRequired[typing.Any]
 
+@dataclasses.dataclass(kw_only=True)
 class ValidationResults:
     """
     A dataclass that represents the results of a validation.

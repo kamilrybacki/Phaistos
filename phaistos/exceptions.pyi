@@ -11,4 +11,4 @@ class IncorrectFieldTypeError(ValueError): ...
 class FieldValidationErrorInfo:
     name: str
     message: str
-    timestamp: datetime.datetime
+    timestamp: datetime.datetime = dataclasses.field(default_factory=datetime.datetime.now)
