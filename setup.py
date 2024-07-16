@@ -15,6 +15,7 @@ if version := os.environ.get("RELEASE_VERSION"):
         long_description_content_type="text/markdown",
         url="https://phaistos.readthedocs.io/en/latest",
         packages=setuptools.find_packages(),
+        package_data={"phaistos": ["py.typed"]},
         install_requires=[
             "PyYAML==6.0.1",
             "pydantic==2.7.0",
